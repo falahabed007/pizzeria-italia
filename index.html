@@ -33,7 +33,7 @@
         background: var(--italiabeckum-akzent);
         background-size: cover; background-position: center;
         width: 100%; box-sizing: border-box;
-        min-height: 320px; height: auto; padding: 80px 20px 25px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        min-height: 0; height: auto; padding: 80px 20px 25px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
         color: var(--italiabeckum-auf-akzent); text-align: center;
     }
     .logo-circle {
@@ -395,7 +395,7 @@
     .hero { 
         padding-top: 70px !important; 
         padding-bottom: 35px !important;
-        min-height: 320px !important; 
+        min-height: 0 !important;
         box-sizing: border-box; 
         background-size: cover !important;
         background-position: center center !important;
@@ -649,7 +649,7 @@
         font-family: Georgia, 'Times New Roman', serif;
         font-size: 1.45rem;
         font-weight: 900;
-        color: var(--italiabeckum-auf-akzent);
+        color: var(--italiabeckum-schrift);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -939,7 +939,7 @@
         <div class="logo-circle" style="flex-direction: column; align-items: center;">
     <!-- ✅ LOGO HIER EINFÜGEN: logo.png in denselben Ordner wie diese Datei legen -->
     
-    <p style="margin: 4px 0 0 0; font-size: 15px; color: var(--italiabeckum-schrift); font-weight: 600;">Hammer Str. 19, 59269 Beckum</p>
+    <p style="margin: 4px 0 0 0; font-size: 15px; color: var(--italiabeckum-auf-akzent); font-weight: 600;">Hammer Str. 19, 59269 Beckum</p>
 </div>
         
         
@@ -967,9 +967,6 @@
         <div class="action-buttons">
     <a href="tel:+492521874978" class="italia-beckum-btn btn-red">
         <i class="fas fa-phone-alt"></i> 0 25 21 / 87 49 78
-    </a>
-    <a href="https://wa.me/492521874978" target="_blank" rel="noopener" class="italia-beckum-btn btn-gold">
-        <i class="fab fa-whatsapp"></i> WhatsApp-Bestellung
     </a>
     
 
@@ -4114,6 +4111,7 @@ function ohneAllergene(h3) {  // Gerichtsname ohne die angehaengten Allergen-Cod
   k.querySelectorAll('sup').forEach(function (s) { s.remove(); });
   return k.textContent.trim();
 }
+window.ohneAllergene = ohneAllergene;
 var AM = {
   // Allergene je Artikelnummer: von der Karte, Rest nach üblichen Rezepturen. Eine Liste des Wirts hat Vorrang.
   "1": "A,C,G,1",
