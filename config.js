@@ -13,4 +13,4 @@
 //
 // Diese Datei muss in <head> vor allen anderen Skripten geladen werden.
 
-window.FLUEVATE_BACKEND = 'https://api.FEHLT_DOMAIN';
+window.FLUEVATE_BACKEND = 'http://w02fczdy9bmviqe2m4zw3wv1.178.104.166.135.sslip.io';
