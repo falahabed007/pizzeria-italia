@@ -1,0 +1,2 @@
+Abstammung: 49ab7a7 2026-10-25 Stripe: fester Einrichtungslink fuer den Inhaber (/api/stripe/einrichten)
+Vorlage:    /c/Users/Abed Falah/dev/gastronomie/PinocchioNordkirchen

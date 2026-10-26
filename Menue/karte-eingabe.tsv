@@ -1,0 +1,156 @@
+@quelle	Gedruckte Karte Pizzeria Italia Beckum, Hammerstr. 19 (PDF-Scan, Pizzeria Italia Speisekarte-1 bis -6.png), eingelesen am 26.10.2026
+@hinweis	Karte ohne Getränke, Döner- und Fleischgerichte, Desserts: im Scan nicht enthalten. Kein Extrabelag-Preis je Größe gedruckt. Preise 'preis_unsicher' sind verschmiert oder verdeckt, siehe preise.md. 'NEU' aus den Namen entfernt. Nummern ohne führende Null (01 = 1).
+@pos_start	pizza
+@groessen	mini=22 cm	normal=28 cm	maxi=30 cm
+# pizza	Pizza	pizza
+1	Margherita	Tomaten und Käse	4	6	7
+2	Rucola	Tomaten, Käse und Rucola	5	8	9
+3	Funghi	Tomaten, Käse und Pilze	5	7.5	8.5
+4	Paprika	Tomaten, Käse und Paprika	5	7.5	8.5
+5	Prosciutto	Tomaten, Käse und Schinken	5	8	8.5
+6	Salami	Tomaten, Käse und Salami	5	8	8.5
+7	Tonno	Tomaten, Käse und Thunfisch	5	8	9
+8	Tonno cipolla	Tomaten, Käse, Zwiebeln und Thunfisch	5.5	8.5	9
+9	Primavera	Tomaten, Käse, Salami und Pilze	5.5	8.5	9
+10	Romana	Tomaten, Käse, Schinken und Pilze	5.5	8.5	9
+11	Little Rock	Tomaten, Käse, Zwiebeln, Schinken und Schafskäse	5.5	8.5	9
+12	Hawaii	Tomaten, Käse, Schinken und Ananas	5.5	8.5	9
+13	Nach Art des Hauses	Tomaten, Käse, Schinken, Salami, Pilze und Thunfisch	6	9	9.5
+14	Mista	Tomaten, Käse, Schinken, Salami und Pilze	5.5	8.5	9.5
+15	Italia	Tomaten, Käse, Schinken, Thunfisch und Salami	5.5	8.5	9.5
+16	Calzone (gefüllt)	Tomaten, Käse, Schinken, Salami und Pilze	5.5	8.5	9.5
+17	Vegetaria Calzone (gefüllt)	Tomaten, Käse, Brokkoli, Artischocken und Paprika	5.5	8.5	9.5
+18	Vegetaria	Tomaten, Käse, Brokkoli, Spinat, Artischocken, Peperoni und Knoblauch	5.5	8.5	9.5
+19	Pizza Pizza	Tomaten, Käse, Brokkoli, Paprika, Zwiebeln, Knoblauch und frische Paprika	5.5	8.5	9.5
+20	Gorgonzola	Tomaten, Käse, Gorgonzola, Peperoni und Schinken	5.5	9	9.5
+21	4 Formaggi	vier verschiedene Käsesorten	5.5	9	9.5
+22	Mozzarella	Tomaten, Käse, Mozzarella und frische Tomaten	5.5	9	9.5
+25	Pizza Spaghetti	Fleischsauce, Spaghetti und Käse	5.5	8.5	9.5
+26	Quattro Stagioni	Tomaten, Käse, Schinken, Artischocken, Paprika und Pilze	5.5	9	9.5
+27	Picante	Tomaten, Käse, Schinken, Artischocken, scharfe Peperoni, Sardellen und Kapern	5.5	9	9.5
+28	Mafiose (gefüllt)	Tomaten, Käse, Thunfisch, Schinken und Artischocken	5.5	9	9.5
+30	Tonnorella	Tomaten, Käse, gekochtes Ei, Thunfisch, Zwiebeln und Peperoni	5.5	9	9.5
+31	Capricciosa	Tomaten, Käse, Salami, Kapern, Sardellen und Oliven	5.5	8.5	9	preis_unsicher=true
+32	Popey	Blattspinat, frische Tomaten und Mozzarella	5.5	8.5	9	preis_unsicher=true
+33	Inferno (extra scharf)	Tomaten, Käse, Schinken, Pilze und Artischocken	5.5	8.5	9	preis_unsicher=true
+34	Siziliana	Tomaten, Käse, Zwiebeln, Paprika, Peperoni und Knoblauch	5.5	8.5	9
+35	Brokkoli	frische Tomaten, Käse, Brokkoli und Mozzarella	5.5	8.5	9
+36	Dallas	Tomaten, Käse, Spinat, Knoblauch und Krabben	6	9	9.5
+37	Pizza Atlanta	Tomaten, Käse, Spinat, Gorgonzola, Zwiebeln und Knoblauch	6	9	9.5
+39	Pizza Frutti di Mare	Tomaten, Käse, Thunfisch, Meeresfrüchten und Knoblauch	6	9	9.5
+40	Pizza	Tomaten, Käse, türk. Knoblauchwurst, fr. Tomaten und Schafskäse	5.5	9	9.5
+42	Lachs	Tomaten, Käse, Lachs, Spinat, Knoblauch und frische Tomaten	6	9	9.5
+43	Chicken	Hähnchenfleisch und Ananas	6	8.5	9
+44	Manhatten	Tomaten, Käse, Schinken, Salami, Pilze, Paprika, Zwiebeln, Mais und Peperoni	5.5	8.5	9
+45	Garnelen	Tomaten, Käse, gebratenen Garnelen und Knoblauch	6	9	9.5
+46	Gourmet frische	Tomaten, Käse, Lachs, Krabben und Knoblauch	5.5	8.5	9.5
+47	San Remo	Tomaten, Käse, Salami, Paprika, Brokkoli, Weichkäse, Pilze	5.5	8.5	9
+48	Pizza Bella Italia	Tomaten, Käse, Thunfisch, Zwiebeln, Paprika und scharfe Peperoni	5.5	8.5	9
+49	Napoli	Tomaten, Käse, Schinken, Salami, Paprika und Zwiebeln	5.5	8.5	9
+210	Gyros-Pizza	frische Tomaten, Käse, Gyros und Zwiebeln	5.5	8	9
+211	Gyros-Pizza 2	frische Tomaten, Käse, Gyros und Weichkäse	5.5	8.5	9.5
+212	Gyros-Pizza 3	frische Tomaten, Käse, Gyros, nach dem Backen belegt mit grünem Salat und Joghurt	5.5	8.5	9.5
+213	Gyros-Pizza (gefüllt)	Tomaten, Käse, Gyros und Zwiebeln	5.5	8.5	9.5
+214	Salat Pizza	Tomaten, Käse, nach dem Backen belegt mit grünem Salat und Joghurt	5.5	8.5	9.5
+215	Pizza Joana	Tomaten, Käse, Mais, Sauce Hollandaise, Dönerfleisch, Brokkoli	5.5	8.5	9.5
+216	Döner Spezial	Tomaten, Käse, Dönerfleisch, Zwiebeln, Jalapenos, frische Tomaten	5.5	8.5	9.5
+217	Döner Spezial 2	Tomaten, Käse, Dönerfleisch, Schafskäse, Peperoni, Paprika, Zwiebeln	5.5	8.5	9.5
+218	Döner Calzone	Tomaten, Käse, Dönerfleisch, Sauce Hollandaise, BBQ-Sauce, Zwiebeln, Peperoni	5.5	8.5	9.5
+# pizza-spezial	Pizza Spezial	pizza
+106	Pizza Garnelen Spezial	Garnelen, Knoblauch und Sauce Hollandaise	5.5	8.5	9.5
+107	Pizza Perino	Schinken, Spargel, Brokkoli, Eier und Sauce Hollandaise	5.5	8.5	9.5
+112	Pizza Gyros	Tomatensauce, Käse, Zwiebeln, Gyros, Barbecuesauce, Weichkäse, Peperoni und Tomaten	5.5	8.5	9.5
+113	Pizza Hähnchen	Hähnchen, Ananas, Barbecuesauce und Sauce Hollandaise	5.5	8.5	9.5
+114	Pizza Salami	Salami, Schinken, Zwiebeln, Barbecuesauce und Sauce Hollandaise	5.5	8.5	9.5
+115	Pizza Spezial	Sahnesauce, Spaghetti und Sauce Hollandaise	5.5	8.5	9.5
+116	Pizza Garnelen 2	Sahnesauce, gebratene Garnelen, Knoblauch und Sauce Hollandaise	5.5	8.5	9.5
+# familienpizza	Familien-Pizza	familie
+	Familien-Pizza (50 cm)	4 Zutaten nach Wahl, jede weitere Zutat laut Karte 2,00 €	23	belegbar=true	preis_unsicher=true
+# taschen	Taschen und Pizzabrötchen	simple
+	Käsetasche		4
+	Mozzarellatasche		6
+	Pizzabrötchen		3
+	Pizzabrötchen gefüllt mit Käse		5
+	Pizzabrötchen gefüllt mit Käse und Schinken		6
+	Pizzabrötchen gefüllt mit Käse und Thunfisch		6
+	Pizzabrötchen gefüllt mit Käse und Dönerfleisch		6
+# pasta	Pasta	simple
+50	Spaghetti Bolognese	mit Fleischsauce	7
+51	Spaghetti alla Panna	mit Schinken und Sahnesauce	7
+52	Spaghetti Napoli	mit Tomatensauce	7
+53	Spaghetti Carbonara	mit Schinken, Sahnesauce und Ei	7
+54	Spaghetti Aglio e Olio	mit Knoblauch, Öl, Petersilie und Peperoni	7.5
+55	Spaghetti Tonno	mit Thunfisch, Knoblauch und Tomatensauce	7.5
+56	Spaghetti Vegetarier	mit Erbsen, Spinat und Sahnesauce	7.5
+57	Spaghetti Gamberetti	mit Scampi, Knoblauch und Tomatensauce	8
+57a	Spaghetti Garnelen	gebratene Garnelen, Zwiebeln, Paprika, Olivenöl und Parmesankäse	9
+58	Spaghetti Italien	mit Brokkoli, Sahnesauce und Gorgonzola	7.5
+59	Rigatoni Bolognese	mit Fleischsauce	7.5
+60	Rigatoni Italia	mit Schinken, frischen Champignons und Tomatensauce	7.5
+61	Rigatoni nach Art des Hauses	mit der Marten-Sauce Spezial, Sahne, Zwiebel, frischen Champignons und Schinken	8
+62	Rigatoni Quattro Formaggi	mit 4 verschiedenen Käsesorten	8
+63	Rigatoni Vegetarier	mit Brokkoli, Erbsen und Sahnesauce	7.5
+64	Tortellini Bolognese	mit Fleischsauce	7.5
+65	Tortellini alla Panna	mit Schinken und Sahnesauce	7.5
+66	Tortellini Carbonara	mit Schinken, Sahnesauce und Ei	7.5
+68	Tortellini Gorgonzola	mit Erbsen, Brokkoli, Sahnesauce und Gorgonzola	8
+69	Tortellini nach Art des Hauses	mit Tomatensauce Spezial, Sahne, Zwiebel, frischen Champignons und Schinken	8
+258	Pesto Pasta a la Salmon	Pesto-Sauce, Lachs, Olivenöl, frische Tomaten und Parmesan	9
+259	Pesto Pasta a la Pollo	Pesto-Sauce, frische Tomaten, Hähnchenbrustfilet, Zwiebeln, Paprika, Olivenöl, Knoblauch und Parmesan	9
+# pasta-ueberbacken	Pasta überbacken	simple	note=Verschiedene Nudelgerichte aus dem Backofen
+71	Lasagne	mit Schinken, Fleischsauce und Käse	8.5
+73	Tris	3 verschiedene Nudelsorten, Fleischsauce und Käse	8.5
+73a	Tris Spezial	3 verschiedene Nudelsorten, 3 verschiedene Saucen und 3 Käsesorten überbacken	8.5	preis_unsicher=true
+74	Tortellini alla Panna	mit Schinken, Brokkoli, Sahnesauce und Käse	9
+75	Tortellini al Forno	mit Fleischsauce und Käse	8.5
+76	Tortellini Italien	mit Tomatensauce, frischen Champignons, Schinken, Erbsen und Spezialsauce	8.5
+77	Rigatoni Carbonara	mit Sahnesauce, Schinken, Käse und Ei	8.5
+78	Rigatoni al Forno	mit Fleischsauce und Käse	8.5
+79	Rigatoni Italia	mit Tomaten, frischen Champignons, Schinken, Erbsen, Spezialsauce und Käse	8.5
+80	Spaghetti al Forno	mit Fleischsauce und Käse	8.5
+81	Spaghetti Carbonara	mit Sahnesauce, Schinken, Käse und Ei	8.5
+82	Spaghetti Italia	mit Tomaten, frischen Champignons, Schinken, Erbsen, Spezialsauce und Käse	8.5
+83	Tris Formaggi	mit 4 verschiedenen Käsesorten, Sahnesauce und 3 verschiedenen Nudelsorten	8.5
+# kartoffelauflauf	Kartoffelauflauf	simple	note=mit Käse überbacken
+229	Kartoffelauflauf Italia	Kartoffeln, Hähnchen, Paprika, Brokkoli, Zwiebeln, Currysauce und mit Käse überbacken	9
+230	Kartoffelauflauf	Kartoffeln, Hähnchen, Sahnesauce und mit Käse überbacken	9
+231	Kartoffelauflauf Adria	Kartoffeln, gegrillter Lachs, Spinat, Knoblauch, Sahnesauce und mit Käse überbacken	9
+232	Kartoffelauflauf Arabica	Kartoffeln, Auberginen, Zwiebeln, Peperoni, Tomatensauce und mit Käse überbacken	9
+233	Kartoffelauflauf Athen	Gyros, Tomaten-/Sahnesauce und mit Käse überbacken	9
+# auflaeufe	Aufläufe	simple	note=mit Käse überbacken
+120	Gemüseauflauf	Rigatoni mit Brokkoli, Paprika, Champignons, Tomaten, Käse und Sahnesauce	9	preis_unsicher=true
+121	Gemüse-Pomodoro	Rigatoni mit Spinat, Brokkoli, Erbsen, Käse, Paprika und Tomaten-Sahnesauce	9	preis_unsicher=true
+122	Gemüse Spezialitäten	Rigatoni mit Brokkoli, Paprika, Erbsen, Zwiebeln, Käse und Fleischsauce	9
+123	Champignons Auflauf	frische Champignons, Zwiebeln, Käse, Nudeln und Sahnesauce	9	preis_unsicher=true
+125	Brokkoli Auflauf	Brokkoli, Schinken, Nudeln, Käse und Sahnesauce	9	preis_unsicher=true
+# geschnetzeltes	Geschnetzeltes (Putenfleisch)	simple
+84	Putengeschnetzeltes	mit Maccaroni, frischen Champignons, frischer Paprika, frischen Tomaten und Sahnesauce	9	preis_unsicher=true
+85	Putengeschnetzeltes	mit Maccaroni und frischen Pilzen in Sahnesauce	8.5
+86	Putengeschnetzeltes	mit Maccaroni in Currysauce	8.5
+86a	Putengeschnetzeltes	mit Maccaroni in Currysauce und Ananas	8.5
+87	Putengeschnetzeltes	mit Maccaroni, Paprika, Pilzen, Brokkoli, Erbsen und Sahnesauce	8.5
+88	Putengeschnetzeltes	mit Maccaroni, Tomaten, Paprika, Brokkoli, Pilzen und Sahnesauce	8.5
+# salate	Salate	simple	note=Alle Salate mit drei verschiedenen Dressings: Joghurt- oder Essig-Öl- oder Frenchsauce. Alle Salate mit Pizzabrötchen, Kräuterbutter und Knoblauchsauce.
+89	Insalata Mista	Tomaten, Gurken, Salat, Spezialsauce	5
+89a	Insalata Gemischt	Tomaten, Gurken, Zwiebeln, Oliven, Peperoni und Weichkäse	7
+90	Insalata Pomodoro Cipolla	Tomaten, Zwiebeln, Mozzarella, Spezialsauce	5
+91	Insalata di Cipolla	Gurken, Salat, Zwiebeln, Spezialsauce	5
+92	Insalata Primavera	Tomaten, Gurken, Salat, Käse, Schinken, Salami, Thunfisch, Spezialsauce	8
+93	Insalata della Casa	Tomaten, Gurken, Salat, Käse, Zwiebeln, Thunfisch, Ei, Spezialsauce	8
+93a	Insalata della Casa Spezial	Tomaten, Gurken, Salat, Käse, Thunfisch, Ei, gegrilltes Putenfleisch und Spezialsauce	8.5
+94	Insalata Roma	Tomaten, Gurken, Salat, Käse, Artischocke, Thunfisch, Schinken und Spezialsauce	7.5
+95	Insalata Italia	Tomaten, Gurken, Salat, Käse, Artischocke, Thunfisch, Zwiebel, Paprika, Oliven und Spezialsauce	7.5
+96	Insalata Frutti di Mare	Tomaten, Gurken, Salat, Thunfisch, Meeresfrüchte, Paprika und Zwiebeln	9
+97	Insalata Rustica	Tomaten, Gurken, Salat, Käse, Paprika, Mais, Zwiebeln, Artischocken, Möhren und Spezialsauce	8.5
+97a	Insalata Creation	grüner Salat, Tomaten, Gurken, Paprika, Mais, Zwiebeln, Schinken, Weichkäse, Thunfisch und Spezialsauce	8.5
+98	Insalata Hawaii	Tomaten, Gurken, Salat, Ananas, Spargel, Mais, Käse und Spezialsauce	8.5
+99	Insalata Milano	Tomaten, Gurken, Salat, Käse, Zwiebeln, Peperoni, Oliven, Weichkäse, Ei und Spezialsauce	8.5
+100	Insalata Oriental	Salat, Tomaten, Gurken, Putengeschnetzeltes, Joghurtsauce und Currysauce	8.5
+100a	Insalata contadina (Bauernsalat)	grüner Salat, Tomaten, Gurken, Paprika, Mais, Oliven, Weichkäse und Putenfleisch	9
+101	Insalata Lachs	gebratener Lachs, Salat, Tomaten, Mais, Gurken, Oliven, Peperoni, Ruccola, Kidneybohnen und Spezialsauce	9
+101a	Insalata Mix	Hähnchenbrust, Salat, Tomaten, Gurken und gebratenem Gemüse	9
+200	Chicken-Salat	Tomaten, Gurken, Salat, Paprika, Mais, Weichkäse und Hähnchenschnitzel	9
+200a	Kentucky Salat	Tomaten, Gurken, Eisbergsalat, Paprika, Mais, Hähnchenschnitzel, Weichkäse und Ruccola	9
+201	Insalata Athen	Salat, Tomaten, Gurken, Weichkäse, Gyros und gebratenem Gemüse	9
+202	Gyros-Salat	Tomaten, Gurken, Salat, Gyros, Paprika, Mais, milde Peperoni und Weichkäse	9
+203	Garnelen Salat	Tomaten, Gurken, Salat, Mais, Zwiebeln, Peperoni, Oliven und gegrillte Garnelen	9
