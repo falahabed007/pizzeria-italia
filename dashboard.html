@@ -531,9 +531,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--italiabe
     <span style="position:absolute;right:18px;top:13px;cursor:pointer;font-size:28px;color:var(--italiabeckum-schrift-leise);" onclick="closePizzaPopup()">&times;</span>
     <h2 id="modalPizzaName" style="color:var(--italiabeckum-rot);margin:0;">Pizza</h2>
     <p style="margin:13px 0 4px;font-weight:700;font-size:.9rem;">Größe wählen:</p>
-    <div class="size-selector">
-      <div id="btn-28" class="size-btn active" onclick="selectSize(28,0)">28 cm</div>
-    </div>
+    <div class="size-selector" id="pizzaSizeBox"></div>
     <p style="color:var(--italiabeckum-schrift-leise);font-size:.85rem;margin-bottom:4px;">Extras hinzufügen:</p>
     <div id="pizzaExtrasBox"></div>
     <div class="pizza-confirm-btn" onclick="speiseInWarenkorb()">
@@ -661,12 +659,21 @@ const pizzaExtrasList=[
   {n:"Weichkäse",p:1},{n:"Zwiebel",p:1},
   {n:"Gyros",p:1.5},{n:"Hähnchen",p:1.5},{n:"Lachs",p:1.5},{n:"Scampi",p:1.5}
 ];
-function openPizza(el) {
+function openPizza(el, sizes) {
   pizzaBasePrice=parseFloat(el.querySelector('.price').innerText.replace(/[€()]/g,'').replace(',','.').trim());
   sizeSurcharge=0;
   document.getElementById('modalPizzaName').innerText=el.querySelector('h3').innerText;
-  // POS_MENU führt je Pizza nur den Preis der normalen Größe (28 cm)
-  document.getElementById('btn-28').classList.add('active');
+  // Größen 22/28/30 cm mit Preisen je Größe aus POS_MENU (mini/normal/maxi); fehlt eine Größe, entfällt der Knopf.
+  // Ohne Größenpreise (POS_MENU noch nicht neu erzeugt) bleibt nur 28 cm.
+  const groessen=[['mini',22],['normal',28],['maxi',30]].filter(([k])=>sizes&&typeof sizes[k]==='number');
+  if(!groessen.length)groessen.push(['normal',28]);
+  document.getElementById('pizzaSizeBox').innerHTML=groessen.map(([k,cm])=>{
+    const sur=sizes&&typeof sizes[k]==='number'?sizes[k]-pizzaBasePrice:0;
+    return `<div id="btn-${cm}" class="size-btn" onclick="selectSize(${cm},${sur.toFixed(2)})">${cm} cm</div>`;
+  }).join('');
+  document.getElementById('btn-'+(groessen.some(([k])=>k==='normal')?28:groessen[0][1])).classList.add('active');
+  const aktiv=document.querySelector('#pizzaSizeBox .size-btn.active');
+  if(aktiv)sizeSurcharge=parseFloat(aktiv.getAttribute('onclick').match(/,(-?[\d.]+)\)/)[1]);
   let html='',last=0;
   pizzaExtrasList.forEach((e,i)=>{
     if(e.p!==last){html+=`<div class="price-section-header">Extras für ${e.p.toFixed(2).replace('.',',')} €</div>`;last=e.p;}
@@ -1079,68 +1086,68 @@ const ITEM_DESC = {
 // KARTE:START – erzeugt aus Menue/menu.json von karte-einsetzen.js, nicht von Hand aendern
 const POS_MENU = {
   pizza: [
-    {num:'1',name:'Margherita',price:6.00},
-    {num:'2',name:'Rucola',price:8.00},
-    {num:'3',name:'Funghi',price:7.50},
-    {num:'4',name:'Paprika',price:7.50},
-    {num:'5',name:'Prosciutto',price:8.00},
-    {num:'6',name:'Salami',price:8.00},
-    {num:'7',name:'Tonno',price:8.00},
-    {num:'8',name:'Tonno cipolla',price:8.50},
-    {num:'9',name:'Primavera',price:8.50},
-    {num:'10',name:'Romana',price:8.50},
-    {num:'11',name:'Little Rock',price:8.50},
-    {num:'12',name:'Hawaii',price:8.50},
-    {num:'13',name:'Nach Art des Hauses',price:9.00},
-    {num:'14',name:'Mista',price:8.50},
-    {num:'15',name:'Italia',price:8.50},
-    {num:'16',name:'Calzone (gefüllt)',price:8.50},
-    {num:'17',name:'Vegetaria Calzone (gefüllt)',price:8.50},
-    {num:'18',name:'Vegetaria',price:8.50},
-    {num:'19',name:'Pizza Pizza',price:8.50},
-    {num:'20',name:'Gorgonzola',price:9.00},
-    {num:'21',name:'4 Formaggi',price:9.00},
-    {num:'22',name:'Mozzarella',price:9.00},
-    {num:'25',name:'Pizza Spaghetti',price:8.50},
-    {num:'26',name:'Quattro Stagioni',price:9.00},
-    {num:'27',name:'Picante',price:9.00},
-    {num:'28',name:'Mafiose (gefüllt)',price:9.00},
-    {num:'30',name:'Tonnorella',price:9.00},
-    {num:'31',name:'Capricciosa',price:8.50},
-    {num:'32',name:'Popey',price:8.50},
-    {num:'33',name:'Inferno (extra scharf)',price:8.50},
-    {num:'34',name:'Siziliana',price:8.50},
-    {num:'35',name:'Brokkoli',price:8.50},
-    {num:'36',name:'Dallas',price:9.00},
-    {num:'37',name:'Pizza Atlanta',price:9.00},
-    {num:'39',name:'Pizza Frutti di Mare',price:9.00},
-    {num:'40',name:'Pizza',price:9.00},
-    {num:'42',name:'Lachs',price:9.00},
-    {num:'43',name:'Chicken',price:8.50},
-    {num:'44',name:'Manhatten',price:8.50},
-    {num:'45',name:'Garnelen',price:9.00},
-    {num:'46',name:'Gourmet frische',price:8.50},
-    {num:'47',name:'San Remo',price:8.50},
-    {num:'48',name:'Pizza Bella Italia',price:8.50},
-    {num:'49',name:'Napoli',price:8.50},
-    {num:'210',name:'Gyros-Pizza',price:8.00},
-    {num:'211',name:'Gyros-Pizza 2',price:8.50},
-    {num:'212',name:'Gyros-Pizza 3',price:8.50},
-    {num:'213',name:'Gyros-Pizza (gefüllt)',price:8.50},
-    {num:'214',name:'Salat Pizza',price:8.50},
-    {num:'215',name:'Pizza Joana',price:8.50},
-    {num:'216',name:'Döner Spezial',price:8.50},
-    {num:'217',name:'Döner Spezial 2',price:8.50},
-    {num:'218',name:'Döner Calzone',price:8.50},
+    {num:'1',name:'Margherita',price:6.00,mini:4.00,normal:6.00,maxi:7.00},
+    {num:'2',name:'Rucola',price:8.00,mini:5.00,normal:8.00,maxi:9.00},
+    {num:'3',name:'Funghi',price:7.50,mini:5.00,normal:7.50,maxi:8.50},
+    {num:'4',name:'Paprika',price:7.50,mini:5.00,normal:7.50,maxi:8.50},
+    {num:'5',name:'Prosciutto',price:8.00,mini:5.00,normal:8.00,maxi:8.50},
+    {num:'6',name:'Salami',price:8.00,mini:5.00,normal:8.00,maxi:8.50},
+    {num:'7',name:'Tonno',price:8.00,mini:5.00,normal:8.00,maxi:9.00},
+    {num:'8',name:'Tonno cipolla',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'9',name:'Primavera',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'10',name:'Romana',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'11',name:'Little Rock',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'12',name:'Hawaii',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'13',name:'Nach Art des Hauses',price:9.00,mini:6.00,normal:9.00,maxi:9.50},
+    {num:'14',name:'Mista',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'15',name:'Italia',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'16',name:'Calzone (gefüllt)',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'17',name:'Vegetaria Calzone (gefüllt)',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'18',name:'Vegetaria',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'19',name:'Pizza Pizza',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'20',name:'Gorgonzola',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'21',name:'4 Formaggi',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'22',name:'Mozzarella',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'25',name:'Pizza Spaghetti',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'26',name:'Quattro Stagioni',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'27',name:'Picante',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'28',name:'Mafiose (gefüllt)',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'30',name:'Tonnorella',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'31',name:'Capricciosa',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'32',name:'Popey',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'33',name:'Inferno (extra scharf)',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'34',name:'Siziliana',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'35',name:'Brokkoli',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'36',name:'Dallas',price:9.00,mini:6.00,normal:9.00,maxi:9.50},
+    {num:'37',name:'Pizza Atlanta',price:9.00,mini:6.00,normal:9.00,maxi:9.50},
+    {num:'39',name:'Pizza Frutti di Mare',price:9.00,mini:6.00,normal:9.00,maxi:9.50},
+    {num:'40',name:'Pizza',price:9.00,mini:5.50,normal:9.00,maxi:9.50},
+    {num:'42',name:'Lachs',price:9.00,mini:6.00,normal:9.00,maxi:9.50},
+    {num:'43',name:'Chicken',price:8.50,mini:6.00,normal:8.50,maxi:9.00},
+    {num:'44',name:'Manhatten',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'45',name:'Garnelen',price:9.00,mini:6.00,normal:9.00,maxi:9.50},
+    {num:'46',name:'Gourmet frische',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'47',name:'San Remo',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'48',name:'Pizza Bella Italia',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'49',name:'Napoli',price:8.50,mini:5.50,normal:8.50,maxi:9.00},
+    {num:'210',name:'Gyros-Pizza',price:8.00,mini:5.50,normal:8.00,maxi:9.00},
+    {num:'211',name:'Gyros-Pizza 2',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'212',name:'Gyros-Pizza 3',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'213',name:'Gyros-Pizza (gefüllt)',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'214',name:'Salat Pizza',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'215',name:'Pizza Joana',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'216',name:'Döner Spezial',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'217',name:'Döner Spezial 2',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'218',name:'Döner Calzone',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
   ],
   pizza_spezial: [
-    {num:'106',name:'Pizza Garnelen Spezial',price:8.50},
-    {num:'107',name:'Pizza Perino',price:8.50},
-    {num:'112',name:'Pizza Gyros',price:8.50},
-    {num:'113',name:'Pizza Hähnchen',price:8.50},
-    {num:'114',name:'Pizza Salami',price:8.50},
-    {num:'115',name:'Pizza Spezial',price:8.50},
-    {num:'116',name:'Pizza Garnelen 2',price:8.50},
+    {num:'106',name:'Pizza Garnelen Spezial',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'107',name:'Pizza Perino',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'112',name:'Pizza Gyros',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'113',name:'Pizza Hähnchen',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'114',name:'Pizza Salami',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'115',name:'Pizza Spezial',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
+    {num:'116',name:'Pizza Garnelen 2',price:8.50,mini:5.50,normal:8.50,maxi:9.50},
   ],
   familienpizza: [
     {num:'',name:'Familien-Pizza (50 cm)',price:23.00},
@@ -1987,6 +1994,8 @@ function openPOSItem(num, name, price) {
   const cat = getCatForNum(num);
   const el = makeFakeEl(num, name, price);
   if (cat === 'familienpizza')        openPizzaPopup(el);
+  else if (POS_MENU[cat] && POS_MENU[cat].some(i => i.num === num && ('mini' in i || 'normal' in i || 'maxi' in i)))
+                                      openPizza(el, POS_MENU[cat].find(i => i.num === num));
   else if (cat === 'pizza')           openPizza(el);
   else if (PASTA_CATS.includes(cat))  openPasta(el);
   else if (cat === 'salate')          openSalad(el);
@@ -2009,6 +2018,8 @@ function speiseInWarenkorb() {
     activeId='pizzaPopup';
     name=$('modalPizzaName').innerText;
     preis=parseFloat($('finalPriceDisplay').innerText.replace(/[€\s]/g,'').replace(',','.'));
+    const groesse=document.querySelector('#pizzaPopup .size-btn.active');
+    if(groesse)extras.push(groesse.innerText.trim());
     document.querySelectorAll('#pizzaPopup input:checked').forEach(b=>extras.push(b.closest('label').innerText.replace(/\+.*€/,'').trim()));
   } else if (vis('pastaPopup')) {
     activeId='pastaPopup';

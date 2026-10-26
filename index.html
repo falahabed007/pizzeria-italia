@@ -4098,11 +4098,7 @@ LEGAL.allergene = {
        + "<div style='background:var(--italiabeckum-flaeche);border:1px solid var(--italiabeckum-rahmen);border-radius:7px;padding:6px 9px;display:flex;align-items:center;gap:7px'><span style='background:var(--italiabeckum-flaeche);color:var(--italiabeckum-schrift);border-radius:4px;padding:2px 6px;font-size:.69rem;font-weight:900;min-width:18px;text-align:center'>11</span><span style='font-size:.74rem;color:var(--italiabeckum-schrift)'>Phenylketonuriker</span></div>"
        + "</div>"
        + "<div style='background:var(--italiabeckum-flaeche);border-radius:8px;padding:10px 12px;font-size:.74rem;color:var(--italiabeckum-schrift-leise);line-height:1.75'>"
-       + "<strong>Pizza Grundbelag:</strong> Tomaten, Käse (A, G) &nbsp;|&nbsp; "
-       + "<strong>Thunfisch:</strong> (D) &nbsp;|&nbsp; "
-       + "<strong>Joghurtdressing:</strong> (A, E, G) &nbsp;|&nbsp; "
-       + "<strong>Hähnchenbrust:</strong> (A, G) &nbsp;|&nbsp; "
-       + "<strong>Meeresfrüchte:</strong> (B, D, N)"
+       + "<strong>Kennzeichnung je Gericht:</strong> Die Buchstaben und Zahlen stehen direkt bei jedem Gericht in der Speisekarte (z.&nbsp;B. Nr.&nbsp;1 Margherita: A, C, G, 1). Bei Fragen zu einem Gericht rufen Sie uns bitte an."
        + "</div>"
        + "<p style='margin-top:14px;font-size:.71rem;color:var(--italiabeckum-schrift-leise)'>&#9888;&#65039; Trotz sorgfältiger Zubereitung können Spuren anderer Stoffe enthalten sein.</p>"
 };
@@ -4992,11 +4988,25 @@ body.modal-open {
   }
 
   /* ── 4. Status & Availability vom Backend laden ───────────── */
+  // Lieferung nur Mo–Sa 17:00–22:00, So 17:00–21:30; Abholung läuft ab 16:30 (server.js: lieferungOffen)
+  function lieferungSperren(gesperrt) {
+    ['cart-btn-delivery', 'option-delivery'].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (!b) return;
+      b.disabled = gesperrt;
+      b.style.opacity = gesperrt ? '.45' : '';
+      b.style.pointerEvents = gesperrt ? 'none' : '';
+      b.title = gesperrt ? 'Lieferung Mo–Sa 17:00–22:00, So 17:00–21:30 Uhr – Abholung ab 16:30 Uhr' : '';
+    });
+    if (gesperrt && typeof setCartOption === 'function') setCartOption('pickup', true);
+  }
+
   async function syncWithBackend() {
     try {
       const statusRes  = await fetch(BACKEND_URL + '/api/status');
       const statusData = await statusRes.json();
       const mode       = statusData.mode || (statusData.isOpen ? 'online' : 'geschlossen');
+      lieferungSperren(statusData.lieferung === false);
 
       if (mode === 'geschlossen') {
         showClosedBanner('geschlossen');

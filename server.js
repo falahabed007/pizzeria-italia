@@ -522,8 +522,8 @@ app.get('/api/status', async (req, res) => {
   try {
     const s = await Settings.findById('restaurant');
     const mode = s ? (s.mode || (s.isOpen ? 'online' : 'geschlossen')) : 'online';
-    res.json({ mode, isOpen: mode === 'online' });
-  } catch(e) { res.json({ mode: 'online', isOpen: true }); }
+    res.json({ mode, isOpen: mode === 'online', lieferung: lieferungOffen() });
+  } catch(e) { res.json({ mode: 'online', isOpen: true, lieferung: lieferungOffen() }); }
 });
 
 // ── Restaurant Status (Admin) ─────────────────────────────────────
@@ -592,8 +592,14 @@ app.post('/api/orders', async (req, res) => {
       } catch {} // Gastbestellung – kein Fehler
     }
 
-    const orderNum = await getNextOrderNum();
     const isPOS    = req.body.source === 'pos';
+
+    // Lieferbestellungen nur in den Lieferzeiten (Abholung läuft ab 16:30)
+    if (!isPOS && req.body.mode === 'lieferung' && !lieferungOffen()) {
+      return res.status(409).json({ message: 'Lieferung ist nur Mo–Sa 17:00–22:00 und So 17:00–21:30 Uhr möglich. Abholung ist ab 16:30 Uhr möglich.' });
+    }
+
+    const orderNum = await getNextOrderNum();
 
     // Rabatt nicht aus dem Request übernehmen, sondern selbst rechnen
     const rabatt = berechneRabatt(req.body);
@@ -1395,8 +1401,18 @@ function calcAutoMode() {
   const wd = new Date(year, mon - 1, day).getDay();
 
   // Abholzeiten, dieselbe Angabe wie im Impressum: Mo–So und Feiertage 16:30–22:00.
-  // Lieferung gilt Mo–Sa ab 17:00 bis 22:00, So bis 21:30 (nur im Impressum genannt).
+  // Die Lieferung (Mo–Sa 17:00–22:00, So 17:00–21:30) sperrt lieferungOffen() getrennt.
   return (mins >= 16*60+30 && mins < 22*60) ? 'online' : 'geschlossen';
+}
+
+// Lieferzeiten, dieselbe Angabe wie im Impressum: Mo–Sa 17:00–22:00, So 17:00–21:30.
+function lieferungOffen() {
+  const parts = new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })
+    .match(/(\d+)\.(\d+)\.(\d+),\s*(\d+):(\d+)/);
+  if (!parts) return false;
+  const mins = parseInt(parts[4]) * 60 + parseInt(parts[5]);
+  const wd   = new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1])).getDay();
+  return mins >= 17*60 && mins < (wd === 0 ? 21*60+30 : 22*60);
 }
 
 cron.schedule('* * * * *', async () => {
