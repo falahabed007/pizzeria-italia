@@ -1,10 +1,15 @@
 {
   "_quelle": "Gedruckte Karte Pizzeria Italia Beckum, Hammerstr. 19 (PDF-Scan, Pizzeria Italia Speisekarte-1 bis -6.png), eingelesen am 26.10.2026",
-  "_hinweis": "Karte ohne Getränke, Döner- und Fleischgerichte, Desserts: im Scan nicht enthalten. Kein Extrabelag-Preis je Größe gedruckt. Preise 'preis_unsicher' sind verschmiert oder verdeckt, siehe preise.md. 'NEU' aus den Namen entfernt. Nummern ohne führende Null (01 = 1).",
+  "_hinweis": "Karte ohne Döner- und Fleischgerichte, Desserts: im Scan nicht enthalten. Getränke (je 0,33 l) und Extrabelag laut Wirt (Nachtrag 1, 26.10.2026), Getränkepreise an Amoura orientiert. 'NEU' aus den Namen entfernt. Nummern ohne führende Null (01 = 1).",
   "_groessen": {
     "mini": "22 cm",
     "normal": "28 cm",
     "maxi": "30 cm"
+  },
+  "_extras": {
+    "mini": 0.5,
+    "normal": 0.5,
+    "maxi": 2
   },
   "_pos_start": "pizza",
   "kategorien": [
@@ -235,8 +240,7 @@
           "desc": "Tomaten, Käse, Salami, Kapern, Sardellen und Oliven",
           "mini": 5.5,
           "normal": 8.5,
-          "maxi": 9,
-          "preis_unsicher": true
+          "maxi": 9
         },
         {
           "num": "32",
@@ -244,8 +248,7 @@
           "desc": "Blattspinat, frische Tomaten und Mozzarella",
           "mini": 5.5,
           "normal": 8.5,
-          "maxi": 9,
-          "preis_unsicher": true
+          "maxi": 9
         },
         {
           "num": "33",
@@ -253,8 +256,7 @@
           "desc": "Tomaten, Käse, Schinken, Pilze und Artischocken",
           "mini": 5.5,
           "normal": 8.5,
-          "maxi": 9,
-          "preis_unsicher": true
+          "maxi": 9
         },
         {
           "num": "34",
@@ -515,8 +517,7 @@
           "name": "Familien-Pizza (50 cm)",
           "desc": "4 Zutaten nach Wahl, jede weitere Zutat laut Karte 2,00 €",
           "preis": 23,
-          "belegbar": true,
-          "preis_unsicher": true
+          "belegbar": true
         }
       ]
     },
@@ -730,8 +731,7 @@
           "num": "73a",
           "name": "Tris Spezial",
           "desc": "3 verschiedene Nudelsorten, 3 verschiedene Saucen und 3 Käsesorten überbacken",
-          "preis": 8.5,
-          "preis_unsicher": true
+          "preis": 9
         },
         {
           "num": "74",
@@ -843,15 +843,13 @@
           "num": "120",
           "name": "Gemüseauflauf",
           "desc": "Rigatoni mit Brokkoli, Paprika, Champignons, Tomaten, Käse und Sahnesauce",
-          "preis": 9,
-          "preis_unsicher": true
+          "preis": 9
         },
         {
           "num": "121",
           "name": "Gemüse-Pomodoro",
           "desc": "Rigatoni mit Spinat, Brokkoli, Erbsen, Käse, Paprika und Tomaten-Sahnesauce",
-          "preis": 9,
-          "preis_unsicher": true
+          "preis": 9
         },
         {
           "num": "122",
@@ -863,15 +861,13 @@
           "num": "123",
           "name": "Champignons Auflauf",
           "desc": "frische Champignons, Zwiebeln, Käse, Nudeln und Sahnesauce",
-          "preis": 9,
-          "preis_unsicher": true
+          "preis": 9
         },
         {
           "num": "125",
           "name": "Brokkoli Auflauf",
           "desc": "Brokkoli, Schinken, Nudeln, Käse und Sahnesauce",
-          "preis": 9,
-          "preis_unsicher": true
+          "preis": 9
         }
       ]
     },
@@ -884,8 +880,7 @@
           "num": "84",
           "name": "Putengeschnetzeltes",
           "desc": "mit Maccaroni, frischen Champignons, frischer Paprika, frischen Tomaten und Sahnesauce",
-          "preis": 9,
-          "preis_unsicher": true
+          "preis": 9
         },
         {
           "num": "85",
@@ -1062,6 +1057,44 @@
           "name": "Garnelen Salat",
           "desc": "Tomaten, Gurken, Salat, Mais, Zwiebeln, Peperoni, Oliven und gegrillte Garnelen",
           "preis": 9
+        }
+      ]
+    },
+    {
+      "id": "getraenke",
+      "titel": "Getränke",
+      "typ": "simple",
+      "note": "0,33-l-Dose, Preis inkl. Pfand",
+      "items": [
+        {
+          "num": "",
+          "name": "Coca Cola 0,33 l",
+          "desc": "0,33 Liter Dose · inkl. Pfand",
+          "preis": 2.75
+        },
+        {
+          "num": "",
+          "name": "Coca Cola Zero 0,33 l",
+          "desc": "0,33 Liter Dose · inkl. Pfand",
+          "preis": 2.75
+        },
+        {
+          "num": "",
+          "name": "Fanta 0,33 l",
+          "desc": "0,33 Liter Dose · inkl. Pfand",
+          "preis": 2.75
+        },
+        {
+          "num": "",
+          "name": "Sprite 0,33 l",
+          "desc": "0,33 Liter Dose · inkl. Pfand",
+          "preis": 2.75
+        },
+        {
+          "num": "",
+          "name": "Wasser 0,33 l",
+          "desc": "0,33 Liter · spritzig",
+          "preis": 2.75
         }
       ]
     }

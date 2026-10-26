@@ -479,8 +479,8 @@ app.get('/api/config', (req, res) => res.json({
   whatsapp: process.env.WHATSAPP_NUMBER || '',
   serviceFee: 0.99,
   deliveryCities: {
-    'Beckum':          { min: 0, fee: 1.00 }, // FEHLT_MBW_BECKUM
-    'Andere Orte':          { min: 20.00, fee: 2.50 }, // FEHLT_ORTE_AUSSERHALB_BECKUM
+    'Beckum':          { min: 15.00, fee: 1.00 },
+    'Andere Orte':          { min: 20.00, fee: 2.50 }, // Roland, Vellern, Neubeckum
   }
 }));
 

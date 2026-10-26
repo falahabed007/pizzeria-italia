@@ -46,8 +46,8 @@
     "so": [["17:00", "21:30"]]
   },
   "lieferorte": [
-    { "ort": "Beckum", "mbw": "FEHLT_MBW_BECKUM", "gebuehr": 1 },
-    { "ort": "FEHLT_ORTE_AUSSERHALB_BECKUM", "mbw": 20, "gebuehr": 2.5 }
+    { "ort": "Beckum", "mbw": 15, "gebuehr": 1 },
+    { "ort": "Roland, Vellern, Neubeckum", "mbw": 20, "gebuehr": 2.5 }
   ],
   "servicegebuehr": 0.99,
   "grundgebuehr": 150,

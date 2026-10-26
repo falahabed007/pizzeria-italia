@@ -476,7 +476,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--italiabe
               <div class="pos-field"><div class="pos-label">Ort</div>
                 <select class="pos-input" id="posCity" onchange="renderPOSTotals()">
                   <option value="Beckum">Beckum (+1,00 €)</option>
-                  <option value="Andere Orte">FEHLT_ORTE_AUSSERHALB_BECKUM (+2,50 €)</option>
+                  <option value="Andere Orte">Roland, Vellern, Neubeckum (+2,50 €)</option>
                 </select>
               </div>
             </div>
@@ -762,7 +762,7 @@ function closeDipPopup(){document.getElementById('dipPopup').style.display='none
 
 // ── Familienpizza-Popup ──
 let currentFamBasePrice=0, selectedOrder=[];
-const FREE_EXTRAS=3, EXTRA_PRICE_FLAT=3.00;
+const FREE_EXTRAS=3, EXTRA_PRICE_FLAT=2.00;
 const famExtrasList=[
   {n:"Artischocken"},{n:"Broccoli"},{n:"Ei"},{n:"Gorgonzola"},{n:"Hollandaise"},
   {n:"Käse"},{n:"Mais"},{n:"Meeresfrüchte"},{n:"Mozzarella"},{n:"Oliven"},
@@ -853,7 +853,7 @@ if (!window.FLUEVATE_BACKEND) {
 // ausgeliefert, jeder koennte sie im Quelltext mitlesen. Geprueft wird
 // ausschliesslich serverseitig ueber POST /api/admin/login.
 const SERVICE_FEE     = 0.99;
-const DELIVERY_FEES   = { 'Beckum':1.00, 'Andere Orte':2.50 }; // Ort "Andere Orte": FEHLT_ORTE_AUSSERHALB_BECKUM
+const DELIVERY_FEES   = { 'Beckum':1.00, 'Andere Orte':2.50 }; // Ort "Andere Orte": Roland, Vellern, Neubeckum
 
 let token       = localStorage.getItem('italia-beckumToken')
                || sessionStorage.getItem('italia-beckumToken') || '';
@@ -1181,7 +1181,7 @@ const POS_MENU = {
   pasta_ueberbacken: [
     {num:'71',name:'Lasagne',price:8.50},
     {num:'73',name:'Tris',price:8.50},
-    {num:'73a',name:'Tris Spezial',price:8.50},
+    {num:'73a',name:'Tris Spezial',price:9.00},
     {num:'74',name:'Tortellini alla Panna',price:9.00},
     {num:'75',name:'Tortellini al Forno',price:8.50},
     {num:'76',name:'Tortellini Italien',price:8.50},
@@ -1240,9 +1240,16 @@ const POS_MENU = {
     {num:'202',name:'Gyros-Salat',price:9.00},
     {num:'203',name:'Garnelen Salat',price:9.00},
   ],
+  getraenke: [
+    {num:'',name:'Coca Cola 0,33 l',price:2.75},
+    {num:'',name:'Coca Cola Zero 0,33 l',price:2.75},
+    {num:'',name:'Fanta 0,33 l',price:2.75},
+    {num:'',name:'Sprite 0,33 l',price:2.75},
+    {num:'',name:'Wasser 0,33 l',price:2.75},
+  ],
 };
 let posCategory = 'pizza';
-window.POS_TITEL = {"pizza":"Pizza","pizza_spezial":"Pizza Spezial","familienpizza":"Familien-Pizza","taschen":"Taschen und Pizzabrötchen","pasta":"Pasta","pasta_ueberbacken":"Pasta überbacken","kartoffelauflauf":"Kartoffelauflauf","auflaeufe":"Aufläufe","geschnetzeltes":"Geschnetzeltes (Putenfleisch)","salate":"Salate"};
+window.POS_TITEL = {"pizza":"Pizza","pizza_spezial":"Pizza Spezial","familienpizza":"Familien-Pizza","taschen":"Taschen und Pizzabrötchen","pasta":"Pasta","pasta_ueberbacken":"Pasta überbacken","kartoffelauflauf":"Kartoffelauflauf","auflaeufe":"Aufläufe","geschnetzeltes":"Geschnetzeltes (Putenfleisch)","salate":"Salate","getraenke":"Getränke"};
 // KARTE:ENDE
 // Vorauswahl der Kasse aus _pos_start in menu.json; openPOS() setzt darauf zurueck.
 const POS_START = posCategory;
