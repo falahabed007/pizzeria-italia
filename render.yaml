@@ -27,7 +27,7 @@ services:
       - key: NODE_VERSION
         value: "20"
       - key: FRONTEND_URL
-        value: https://FEHLT_DOMAIN
+        value: https://pizza-italia-beckum.com
 
       # ── Datenbank ──
       - key: MONGODB_URI
@@ -55,7 +55,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: bestellungen@FEHLT_DOMAIN
+        value: bestellungen@pizza-italia-beckum.com
       - key: RESTAURANT_EMAIL
         sync: false
       - key: OWNER_EMAIL
