@@ -479,9 +479,8 @@ app.get('/api/config', (req, res) => res.json({
   whatsapp: process.env.WHATSAPP_NUMBER || '',
   serviceFee: 0.99,
   deliveryCities: {
-    'Beckum':          { min: 10.00, fee: 2.00 },
-    'Südkirchen / Capelle': { min: 15.00, fee: 2.50 },
-    'Andere Orte':          { min: 20.00, fee: 4.00 },
+    'Beckum':          { min: 0, fee: 1.00 }, // FEHLT_MBW_BECKUM
+    'Andere Orte':          { min: 20.00, fee: 2.50 }, // FEHLT_ORTE_AUSSERHALB_BECKUM
   }
 }));
 
@@ -562,14 +561,15 @@ app.get('/api/availability', async (req, res) => {
   } catch(e) { res.status(500).json({ message: 'Fehler' }); }
 });
 
-// ── Finanzschüler-Rabatt: serverseitig nachrechnen ───────────────
-// Flyer: "Bei Lieferung erhalten Finanzschüler ab 70 Euro 10 Prozent Rabatt."
-// Der Client darf einen Betrag vorschlagen – maßgeblich ist allein diese Rechnung.
+// ── Rabattsystem: stillgelegt für diesen Standort ───────────────
+// Der Code ist bewusst unbenutzbar gesetzt. Der Client darf einen Betrag vorschlagen –
+// maßgeblich ist allein diese Rechnung, und sie gibt ohne passenden Code 0 zurück.
 const RABATT_CODE        = 'ZZ-STILLGELEGT';
 const RABATT_PROZENT     = 0.10;
 const RABATT_MINDESTWERT = 70.00;
 
 function berechneRabatt({ coupon, mode, items, subtotal }) {
+  return 0; // Rabattsystem abgeschaltet
   if (!coupon || String(coupon).toUpperCase() !== RABATT_CODE) return 0;
   if (mode !== 'lieferung') return 0;                 // laut Flyer nur bei Lieferung
   const warenwert = Array.isArray(items)
@@ -1394,26 +1394,9 @@ function calcAutoMode() {
   // Wochentag berechnen (0=So, 1=Mo, ..., 6=Sa)
   const wd = new Date(year, mon - 1, day).getDay();
 
-  // Zeiten wie auf der gedruckten Speisekarte
-  // Montag: 16:30–21:00
-  if (wd === 1) {
-    return (mins >= 16*60+30 && mins < 21*60) ? 'online' : 'geschlossen';
-  }
-
-  // Freitag, Samstag: 15:30–21:30
-  if (wd === 5 || wd === 6) {
-    return (mins >= 15*60+30 && mins < 21*60+30) ? 'online' : 'geschlossen';
-  }
-
-  // Sonntag: 13:00–21:30
-  if (wd === 0) {
-    return (mins >= 13*60 && mins < 21*60+30) ? 'online' : 'geschlossen';
-  }
-
-  // Di, Mi, Do: 11:30–14:00 & 16:30–21:30
-  const session1 = mins >= 11*60+30 && mins < 14*60;
-  const session2 = mins >= 16*60+30 && mins < 21*60+30;
-  return (session1 || session2) ? 'online' : 'geschlossen';
+  // Abholzeiten, dieselbe Angabe wie im Impressum: Mo–So und Feiertage 16:30–22:00.
+  // Lieferung gilt Mo–Sa ab 17:00 bis 22:00, So bis 21:30 (nur im Impressum genannt).
+  return (mins >= 16*60+30 && mins < 22*60) ? 'online' : 'geschlossen';
 }
 
 cron.schedule('* * * * *', async () => {
@@ -1432,8 +1415,8 @@ cron.schedule('* * * * *', async () => {
 // Eine Kartenzahlung wird erst zur Bestellung, wenn Stripes Webhook sie
 // meldet. Bricht diese Kette, bleibt die Bestellung auf `awaiting_payment`
 // stehen: Der Gast hat gezahlt, die Kueche sieht nichts, und nichts meldet
-// sich. Genau das ist Ararat, Amoura und Vorhelm von April bis September 2026
-// passiert - allein in den letzten 30 Tagen 18 Zahlungen ueber 757,91 €.
+// sich. Genau das ist in laufenden Bestellsystemen schon vorgekommen: Zahlungen
+// kamen an, die Bestellungen blieben unsichtbar.
 //
 // Der Wachhund schaut alle fuenf Minuten nach Bestellungen, die laenger als
 // zehn Minuten warten, fragt bei Stripe nach und holt sie nach. Er ist
@@ -1441,8 +1424,8 @@ cron.schedule('* * * * *', async () => {
 // und es faellt trotzdem auf, statt monatelang unbemerkt zu bleiben.
 const WACHHUND_MINUTEN = 10;
 // Obere Altersgrenze, und die ist nicht optional. Ohne sie greift der
-// Wachhund beim ersten Lauf nach JEDER haengenden Bestellung - bei Ararat,
-// Amoura und Vorhelm also nach allem seit April. Die Liste der eingehenden
+// Wachhund beim ersten Lauf nach JEDER haengenden Bestellung - in einem
+// laufenden System also nach allem seit Betriebsbeginn. Die Liste der eingehenden
 // Bestellungen im Dashboard hat keine Datumsgrenze und sortiert die aeltesten
 // nach oben: Mitten im Betrieb stuende dort eine Wand aus Monate alten
 // "neuen" Bestellungen, jede mit Alarmton. Und weil "pending" im Umsatz
