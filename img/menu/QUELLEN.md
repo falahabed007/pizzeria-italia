@@ -37,3 +37,15 @@ dortigen QUELLEN.md ist ihre Herkunft unbelegt bzw. unbekannt.
 
 `getraenke.jpg` zeigt eine Marke. Das passt, weil Italia Coca-Cola verkauft.
 Als Werbemotiv für etwas anderes taugt das Bild nicht.
+
+## Titelbild (img/hero.jpg)
+
+Von Abed am 27.10.2026 geliefert: Pasta, Tomaten und Basilikum auf dunklem
+Stein, mit dem Schriftzug „Pizzeria Italia“. Die Vorlage war eine PNG mit
+1145×816 Pixeln, verlustarm in JPG umgewandelt (Qualität 86). **Woher das
+Hintergrundfoto stammt, ist nicht festgehalten.** Bevor das Bild anderswo
+verwendet wird, das klären.
+
+Der Schriftzug sitzt bei etwa 28 % der Bildhöhe. Deshalb ist das Bild in
+`index.html` oben ausgerichtet, auf schmalen Bildschirmen beginnt es erst
+unterhalb der 68 px hohen Kopfleiste.

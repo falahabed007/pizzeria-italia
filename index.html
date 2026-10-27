@@ -30,11 +30,13 @@
 
     /* Header Bereich mit Banner-Bild */
     .hero {
-        background: var(--italiabeckum-akzent);
-        background-size: cover; background-position: center;
+        /* Titelbild mit Schriftzug "Pizzeria Italia" im Bild selbst (img/hero.jpg).
+           Ausrichtung siehe unten bei "iPhone: Hero Abstand". */
+        background: url('img/hero.jpg') no-repeat, var(--italiabeckum-grund);
+        background-size: cover; background-position: center top;
         width: 100%; box-sizing: border-box;
-        min-height: 0; height: auto; padding: 80px 20px 25px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        color: var(--italiabeckum-auf-akzent); text-align: center;
+        min-height: 0; height: auto; padding: 80px 20px 25px 20px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+        color: var(--italiabeckum-schrift); text-align: center;
     }
     .logo-circle {
     display: flex;
@@ -395,10 +397,21 @@
     .hero { 
         padding-top: 70px !important; 
         padding-bottom: 35px !important;
-        min-height: 0 !important;
+        min-height: clamp(280px, 40vw, 520px) !important;
         box-sizing: border-box; 
         background-size: cover !important;
-        background-position: center center !important;
+        /* Oben statt mittig: die feste Kopfleiste (68 px) liegt ueber dem
+           oberen Rand, mittig verschwand der Schriftzug im Bild darunter. */
+        background-position: center top !important;
+    }
+    /* Schmale Bildschirme: Bild in voller Breite und erst unter der
+       Kopfleiste beginnen lassen, sonst saesse der Schriftzug direkt an ihr. */
+    @media (max-width: 700px) {
+        .hero {
+            background-size: 100% auto !important;
+            background-position: center 68px !important;
+            min-height: calc(68px + 71.3vw) !important;
+        }
     }
 
     /* ===== iPhone: Checkout als Bottom Sheet ===== */
@@ -939,7 +952,7 @@
         <div class="logo-circle" style="flex-direction: column; align-items: center;">
     <!-- ✅ LOGO HIER EINFÜGEN: logo.png in denselben Ordner wie diese Datei legen -->
     
-    <p style="margin: 4px 0 0 0; font-size: 15px; color: var(--italiabeckum-auf-akzent); font-weight: 600;">Hammer Str. 19, 59269 Beckum</p>
+    <p style="margin: 4px 0 0 0; font-size: 15px; color: var(--italiabeckum-schrift); font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">Hammer Str. 19, 59269 Beckum</p>
 </div>
         
         
