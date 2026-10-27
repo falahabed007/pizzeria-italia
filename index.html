@@ -4504,22 +4504,17 @@ document.readyState === 'loading'
   // Zuordnungen unten (ITEM_IMG, NAME_IMG, CAT_IMG) bleiben in jedem Fall
   // stehen und greifen sofort wieder.
   var GERICHT_FOTOS     = false;   // Foto oben in jeder Produktkarte
-  var KATEGORIE_BANNER  = false;    // Foto unter jedem Kategorie-Titel
+  var KATEGORIE_BANNER  = true;    // Foto unter jedem Kategorie-Titel
 
   // Ein Banner erscheint nur, wo img/menu/banner/<kategorie-id>.jpg liegt;
   // fehlt die Datei, nimmt onerror das Bild wieder aus dem DOM. Die Auswahl,
   // welche Kategorie ein Banner bekommt, steht also im Ordner, nicht im Code.
+  // geschnetzeltes hat bewusst keine Datei - kein Motiv passte (siehe
+  // img/menu/QUELLEN.md).
   //
-  // Mehrere Kategorien koennen sich eine Datei teilen. Die sechs
-  // Pizza-Abschnitte zeigen dasselbe Bild - als sechs gleiche Dateien haette
-  // der Browser es sechsmal geladen, gut ein Megabyte umsonst.
-  var BANNER_DATEI = {
-    // pizza-kaese, pizza-vegetarisch, pizza-fisch und pizza-fleischsauce haben
-    // eigene Motive und stehen deshalb nicht in dieser Tabelle - ohne Eintrag
-    // greift der Fallback auf <kategorie-id>.jpg.
-    'pizza-mozzarella':  'pizza-kaese',  // gleiches Motiv (Burrata/Mozzarella)
-    'pizza-belaege':     'pizza'
-  };
+  // Mehrere Kategorien koennen sich eine Datei teilen: Eintrag
+  // '<kategorie-id>': '<dateiname ohne .jpg>'. Derzeit hat jede ihre eigene.
+  var BANNER_DATEI = {};
 
   // Einzelne Gerichte bekommen trotzdem ein Foto in der Karte, auch solange
   // GERICHT_FOTOS aus ist. Schluessel ist der Name, wie er nach dem Abtrennen
