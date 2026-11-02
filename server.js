@@ -9,6 +9,7 @@ const bcrypt     = require('bcryptjs');
 const jwt        = require('jsonwebtoken');
 const crypto     = require('crypto');
 const fs         = require('fs');
+const gebuehrenAnlegen = require('./gebuehren');
 require('dotenv').config();
 
 const app  = express();
@@ -190,9 +191,32 @@ const orderSchema = new mongoose.Schema({
   // deren Zufallsteil ist pro Serverprozess konstant und damit ratbar.
   statusToken: { type: String, index: true,
                  default: () => crypto.randomBytes(9).toString('base64url') },
+  ...gebuehrenAnlegen.orderFelder,
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);
+
+// ── Gebührenkonto ────────────────────────────────────────────────
+// Einzige Stelle mit den Vertragszahlen dieses Standorts. Berichte, Checkout
+// und Einzug lesen alle von hier. Ablauf und Regeln: gebuehren.js.
+// Modus ueber GEBUEHREN_EINBEHALT in Coolify: aus | probe | an
+const GEBUEHREN = {
+  standort: 'italia-beckum',
+  name:     'Pizzeria Italia',
+  start:    '2026-11-01',
+  grund:    [{ ab: '2026-11', betrag: 150 }],
+  domain:   0,
+  service:  0.99,
+  provision: 0,
+  einmalig: [],
+  stripeKonto: 0,
+  gebuehrenSeite: 'https://fluevate.de/gebuehren',
+};
+const gebuehren = gebuehrenAnlegen({
+  mongoose, Order, regeln: GEBUEHREN,
+  getStripe: () => getStripe(), getResend: () => getResend(),
+  emailFrom: () => process.env.EMAIL_FROM || 'system@pizza-italia-beckum.com',
+});
 
 const counterSchema = new mongoose.Schema({ _id: String, seq: Number });
 const Counter = mongoose.model('Counter', counterSchema);
@@ -690,7 +714,7 @@ app.post('/api/create-stripe-checkout', async (req, res) => {
     // serviceFee(0,99€) + Stripe-Transaktionsgebühr (1,5% + 0,25€)
     // stripeFee in appFee einrechnen → Gastro trägt Stripe-Gebühren, FlueVate behält vollen Anteil
     const stripeFee = Math.round((total * 0.015 + 0.25) * 100);
-    const appFee = Math.round(serviceFee * 100) + stripeFee;
+    const appFeeNormal = Math.round(serviceFee * 100) + stripeFee;
 
     // Zugriffsschluessel schon hier erzeugen: die success_url wird gebaut,
     // bevor die Bestellung existiert, und muss ihn mitfuehren.
@@ -704,21 +728,9 @@ app.post('/api/create-stripe-checkout', async (req, res) => {
       metadata: { orderNum: String(orderNum), discount: String(rabatt) },
       success_url: `${FRONTEND}?order=${orderNum}&t=${statusToken}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${FRONTEND}?payment=cancelled`,
+      // Kurze Laufzeit: so lange ist der Einbehalt dieser Sitzung reserviert
+      expires_at: gebuehren.sitzungEndet(),
     };
-
-    // Stripe Connect wenn konfiguriert
-    if (process.env.STRIPE_CONNECT_ACCOUNT) {
-      // Mit Connect: payment_method_types explizit (Klarna nicht mit Connect kompatibel)
-      sessionOpts.payment_method_types = ['card'];
-      sessionOpts.payment_intent_data = {
-        application_fee_amount: appFee,
-        transfer_data: { destination: process.env.STRIPE_CONNECT_ACCOUNT }
-      };
-    } else {
-      // Ohne Connect: alle im Stripe-Dashboard aktivierten Methoden erlauben
-      // (Karte, Apple Pay, Google Pay, Klarna, etc.)
-      sessionOpts.automatic_payment_methods = { enabled: true };
-    }
 
     if (rabatt > 0) {
       const coupon = await getStripe().coupons.create({
@@ -728,18 +740,44 @@ app.post('/api/create-stripe-checkout', async (req, res) => {
       sessionOpts.discounts = [{ coupon: coupon.id }];
     }
 
-    const session = await getStripe().checkout.sessions.create(sessionOpts);
+    // Gebuehrenkonto: offene Gebuehren werden von dieser Zahlung einbehalten.
+    // Unter Sperre bis die Bestellung gespeichert ist, sonst zoegen zwei
+    // gleichzeitige Checkouts denselben Rest doppelt ein.
+    const session = await gebuehren.mitSperre(async (gesperrt) => {
+      const { einbehalt, probe } = await gebuehren.einbehaltFuer(Math.round(total * 100), appFeeNormal, gesperrt);
+      const appFee = appFeeNormal + einbehalt;
 
-    const order = new Order({
-      items, subtotal, deliveryFee, serviceFee, total,
-      customer, mode, note, orderNum,
-      discount: rabatt,
-      coupon: rabatt > 0 ? RABATT_CODE : null,
-      payment: 'stripe', paymentStatus: 'pending',
-      stripeSessionId: session.id, status: 'awaiting_payment',
-      statusToken
+      // Stripe Connect wenn konfiguriert
+      if (process.env.STRIPE_CONNECT_ACCOUNT) {
+        // Mit Connect: payment_method_types explizit (Klarna nicht mit Connect kompatibel)
+        sessionOpts.payment_method_types = ['card'];
+        sessionOpts.payment_intent_data = {
+          application_fee_amount: appFee,
+          transfer_data: { destination: process.env.STRIPE_CONNECT_ACCOUNT }
+        };
+        if (einbehalt) sessionOpts.metadata.einbehalt = String(einbehalt);
+      } else {
+        // Ohne Connect: alle im Stripe-Dashboard aktivierten Methoden erlauben
+        // (Karte, Apple Pay, Google Pay, Klarna, etc.)
+        sessionOpts.automatic_payment_methods = { enabled: true };
+      }
+
+      const s = await getStripe().checkout.sessions.create(sessionOpts);
+
+      const order = new Order({
+        items, subtotal, deliveryFee, serviceFee, total,
+        customer, mode, note, orderNum,
+        discount: rabatt,
+        coupon: rabatt > 0 ? RABATT_CODE : null,
+        payment: 'stripe', paymentStatus: 'pending',
+        stripeSessionId: s.id, status: 'awaiting_payment',
+        statusToken,
+        einbehalt, einbehaltProbe: probe,
+        ...(process.env.STRIPE_CONNECT_ACCOUNT ? { appFeeCent: appFee, stripeGebuehrSchaetz: stripeFee } : {}),
+      });
+      await order.save();
+      return s;
     });
-    await order.save();
     res.json({ url: session.url, orderNum });
   } catch(e) { console.error(e); res.status(500).json({ message: 'Stripe Fehler: '+e.message }); }
 });
@@ -751,6 +789,14 @@ app.post('/api/stripe-webhook', async (req, res) => {
     event = getStripe().webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET);
   } catch(e) { return res.status(400).send('Webhook Error: '+e.message); }
 
+  // SEPA-Mandat, Lastschriften und Kartenstreitfaelle fuer das Gebuehrenkonto
+  try {
+    if (await gebuehren.webhook(event)) return res.json({ received: true });
+  } catch (e) {
+    console.error('Gebühren-Webhook:', e);
+    return res.status(500).send('Gebuehren-Webhook fehlgeschlagen');   // Stripe stellt erneut zu
+  }
+
   if (event.type === 'checkout.session.completed') {
     const s = event.data.object;
     const order = await Order.findOne({ stripeSessionId: s.id });
@@ -760,6 +806,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
       order.stripePaymentIntentId = s.payment_intent;
       await order.save();
       console.log(`💳 Bezahlt: #${order.orderNum} → wartet auf Bestätigung`);
+      await gebuehren.stripeGebuehrNachtragen(order);
     }
   }
   if (event.type === 'checkout.session.expired') {
@@ -788,6 +835,7 @@ app.post('/api/verify-payment', async (req, res) => {
       order.stripePaymentIntentId = session.payment_intent;
       await order.save();
       console.log(`✅ Zahlung verifiziert (Fallback): #${order.orderNum}`);
+      await gebuehren.stripeGebuehrNachtragen(order);
     }
 
     res.json({ ok: true, orderNum: order.orderNum });
@@ -1154,9 +1202,12 @@ app.delete('/api/admin/orders/:id', auth, async (req, res) => {
     let refundStatus = null;
     if (order.payment === 'stripe' && order.paymentStatus === 'paid' && order.stripePaymentIntentId) {
       try {
-        const refund = await getStripe().refunds.create({ payment_intent: order.stripePaymentIntentId });
+        // Mit Connect: Pizzeria gibt ihren Anteil zurueck, FlueVate seine Plattformgebuehr.
+        // Ohne reverse_transfer zahlte das Plattformkonto die ganze Erstattung allein.
+        const erstattung = gebuehren.erstattungsParameter();
+        const refund = await getStripe().refunds.create({ payment_intent: order.stripePaymentIntentId, ...erstattung });
         refundStatus = refund.status;
-        await Order.findByIdAndUpdate(order._id, { paymentStatus:'refunded' });
+        await Order.findByIdAndUpdate(order._id, { paymentStatus:'refunded', appFeeErstattet: !!erstattung.refund_application_fee });
         console.log(`💸 Stripe-Refund #${order.orderNum}: ${refund.status}`);
       } catch(e) { console.error('Stripe Refund Fehler:', e.message); refundStatus='failed'; }
     } else if (order.payment === 'paypal' && order.paymentStatus === 'paid' && order.paypalCaptureId) {
@@ -1487,6 +1538,7 @@ cron.schedule('*/5 * * * *', async () => {
         order.nachgeholt = true;
         if (sitzung.payment_intent) order.stripePaymentIntentId = sitzung.payment_intent;
         await order.save();
+        await gebuehren.stripeGebuehrNachtragen(order);
         geholt.push(order);
         console.error(`🚨 Wachhund: #${order.orderNum} war bezahlt und unsichtbar - jetzt auf pending`);
       } catch (e) {
@@ -1553,9 +1605,10 @@ const PDF_W  = 495;
 const PDF_PW = 595;
 const PDF_FT = 790; // Unterkante fuer Tabellenzeilen. Der Textbereich endet bei page.height-50 = 791,9;
                     // reicht eine Zeile darueber, bricht pdfkit selbst um und jede Zelle landet auf eigener Seite.
-const PDF_SV = 0.99;
-const PDF_BASE = 150; // monatliche Grundgebühr (Fixmodell: 150 € + Servicegebühr/Bestellung)
-const PDF_DOMAIN = 0; // monatliche Domain-Kosten, separat ueber Lexware (Abed, 01.11.2026)
+const PDF_SV = GEBUEHREN.service;
+// Feste Monatskosten (Grundgebühr, Domain, Einmalbeträge) eines Monats (YYYY-MM) laut GEBUEHREN, in Euro
+const festeKostenEuro = ym => gebuehrenAnlegen.rein.festeKosten(ym, GEBUEHREN).map(f => ({ ...f, betrag: f.cent / 100 }));
+const grundgebuehr = ym => festeKostenEuro(ym).find(f => f.art === 'grund')?.betrag || 0;
 const pdfFmt = n => n.toFixed(2).replace('.', ',') + ' €';
 
 function pdfColorBox(doc, title, sub, color = '#ece118', h = 70) {
@@ -1697,24 +1750,32 @@ function pdfStornoliste(doc, alle) {
 // den Laden ueberwiesen, reicht das Online-Geld nicht, bleibt ein offener Betrag. Grundgebuehr und Domain fallen
 // monatlich an und stehen nur im Monatsbericht. Die Stripe-Gebuehr ist dieselbe Pauschale, die der Checkout je
 // Online-Zahlung einbehaelt (1,5 % + 0,25 €; am 01.11. fuer Dream Oktober in Stripe nachgeprueft, centgenau).
+// Ueberweisung und offener Betrag kommen aus dem Gebuehrenkonto, nicht aus dem Zeitraum: der Einbehalt faellt an,
+// wann Online-Zahlungen kommen (die Grundgebuehr meist in der ersten Woche), und Reste wandern in den Folgemonat.
 const stripePauschale = o => Math.round(((o.total || 0) * 0.015 + 0.25) * 100) / 100;
-function berichtAbrechnung(orders, mitFixkosten) {
+function berichtAbrechnung(orders, ym = null, konto = null) {
   const summe  = (liste, f) => Math.round(liste.reduce((s, o) => s + f(o), 0) * 100) / 100;
-  const online = orders.filter(o => o.payment === 'stripe');
-  const laden  = orders.filter(o => o.payment !== 'stripe');
+  const online = orders.filter(o => !gebuehren.istVorOrt(o));
+  const laden  = orders.filter(gebuehren.istVorOrt);
+  const fest   = ym ? festeKostenEuro(ym) : [];
   const a = {
     n: orders.length, nOnline: online.length, nLaden: laden.length,
     umsatzOnline: summe(online, o => o.total || 0), umsatzLaden: summe(laden, o => o.total || 0),
-    svc: summe(orders, o => o.serviceFee || PDF_SV), stripeGeb: summe(online, stripePauschale),
-    grund: mitFixkosten ? PDF_BASE : 0, domain: mitFixkosten ? PDF_DOMAIN : 0,
+    svc: summe(orders, o => gebuehren.gebuehrJeBestellung(o) / 100), stripeGeb: summe(online, stripePauschale),
+    grund:  fest.find(f => f.art === 'grund')?.betrag || 0,
+    domain: fest.find(f => f.art === 'domain')?.betrag || 0,
+    sonstige: fest.filter(f => !['grund', 'domain'].includes(f.art)),
+    // tatsaechlich von Stripe an FlueVate: Servicegebuehr der Online-Bestellung + Einbehalt fuers Gebuehrenkonto
+    einbehalten: summe(online, o => (gebuehren.gebuehrJeBestellung(o) + (o.paymentStatus === 'paid' ? (o.einbehalt || 0) : 0)) / 100),
   };
   a.brutto    = a.umsatzOnline + a.umsatzLaden;
-  a.fluevate  = a.grund + a.domain + a.svc;
+  a.fluevate  = Math.round((a.grund + a.domain + a.sonstige.reduce((s, f) => s + f.betrag, 0) + a.svc) * 100) / 100;
   a.gebuehren = a.fluevate + a.stripeGeb;
   a.bleibt    = a.brutto - a.gebuehren;
-  const rest  = Math.round((a.umsatzOnline - a.stripeGeb - a.fluevate) * 100) / 100;
-  a.ueberweisung = Math.max(0, rest);
-  a.offen        = Math.max(0, -rest);
+  a.ueberweisung = Math.max(0, Math.round((a.umsatzOnline - a.stripeGeb - a.einbehalten) * 100) / 100);
+  // noch nicht bezahlt: offen + laufende Checkouts + geplante Lastschrift. Ohne Konto wie bisher aus dem Zeitraum.
+  a.offen = konto ? Math.max(0, konto.offen + konto.reserviert + konto.inLastschrift) / 100
+                  : Math.max(0, Math.round((a.fluevate - a.einbehalten) * 100) / 100);
   return a;
 }
 // "41 × 0,99 €", solange jede Bestellung die Standardgebuehr traegt, sonst nur die Anzahl
@@ -1740,14 +1801,15 @@ function pdfAbrechnung(doc, a) {
   block('GEBÜHREN FLUEVATE');
   if (a.grund)  zeile('Grundgebühr (monatlich)', pdfFmt(a.grund));
   if (a.domain) zeile('Domain (monatlich)', pdfFmt(a.domain));
+  a.sonstige.forEach(f => zeile(f.text, pdfFmt(f.betrag)));
   zeile(`Servicegebühr  (${svcText(a.n, a.svc)})`, pdfFmt(a.svc));
   zeile('Gebühren FlueVate gesamt', pdfFmt(a.fluevate), true);
   block('AUSZAHLUNG ÜBER STRIPE');
   zeile(`Online-Umsatz  (${a.nOnline} Bestellungen)`, pdfFmt(a.umsatzOnline));
   if (a.nOnline) zeile('Stripe-Gebühr  (1,5 % + 0,25 € je Zahlung)', minus(a.stripeGeb));
-  zeile('Gebühren FlueVate', minus(a.fluevate));
+  zeile('Gebühren FlueVate, einbehalten  (siehe Gebührenkonto)', minus(a.einbehalten));
   zeile('Überweisung an Sie', pdfFmt(a.ueberweisung), true);
-  if (a.offen) zeile('Offener Betrag  (wird eingezogen oder ist an FlueVate zu überweisen)', pdfFmt(a.offen), true);
+  if (a.offen) zeile('Offener Betrag laut Gebührenkonto  (wird eingezogen)', pdfFmt(a.offen), true);
   block('BAR / EC-KARTE – LIEGT IN IHRER KASSE');
   zeile(`${a.nLaden} Bestellungen`, pdfFmt(a.umsatzLaden), true);
   doc.y += 8;
@@ -1757,7 +1819,9 @@ function pdfAbrechnung(doc, a) {
   doc.font('Helvetica-Bold').fontSize(13).fillColor('#2e7d32').text(pdfFmt(a.bleibt), PDF_M+2, ay+8, { width: PDF_W-4, align: 'right' });
   doc.y = ay + 28 + 3;
   doc.font('Helvetica').fontSize(7.5).fillColor('#888')
-    .text(a.offen ? `Kasse ${pdfFmt(a.umsatzLaden)} – offener Betrag ${pdfFmt(a.offen)}` : `Überweisung ${pdfFmt(a.ueberweisung)} + Kasse ${pdfFmt(a.umsatzLaden)}`, PDF_M+10, doc.y, { width: PDF_W-20 });
+    .text(Math.abs(a.ueberweisung + a.umsatzLaden - a.offen - a.bleibt) < 0.01
+      ? (a.offen ? `Überweisung ${pdfFmt(a.ueberweisung)} + Kasse ${pdfFmt(a.umsatzLaden)} – offener Betrag ${pdfFmt(a.offen)}` : `Überweisung ${pdfFmt(a.ueberweisung)} + Kasse ${pdfFmt(a.umsatzLaden)}`)
+      : 'Einbehalt und offener Betrag enthalten Gebühren aus anderen Zeiträumen – Aufstellung im Gebührenkonto (letzte Seite).', PDF_M+10, doc.y, { width: PDF_W-20 });
   doc.y += 14;
 }
 
@@ -1765,21 +1829,23 @@ function pdfAbrechnung(doc, a) {
 function abrechnungMailZeilen(a) {
   const eur = n => n.toFixed(2).replace('.', ',') + ' €';
   const td = 'style="padding:8px"', tdr = 'style="padding:8px;text-align:right"';
-  const teile = [a.grund && 'Grundgebühr', a.domain && 'Domain', `Servicegebühr ${a.n} Bestellungen`].filter(Boolean).join(', ');
+  const teile = [a.grund && 'Grundgebühr', a.domain && 'Domain', ...a.sonstige.map(f => f.text), `Servicegebühr ${a.n} Bestellungen`].filter(Boolean).join(', ');
   return `<tr><td ${td}>Gesamtumsatz (Brutto)</td><td ${tdr}>${eur(a.brutto)}</td></tr>`
     + `<tr style="background:#f5f5f5"><td ${td}>Gebühren FlueVate (${teile})</td><td ${tdr}>${eur(a.fluevate)}</td></tr>`
     + (a.nOnline ? `<tr><td ${td}>Stripe-Gebühr (${a.nOnline} Online-Zahlungen)</td><td ${tdr}>${eur(a.stripeGeb)}</td></tr>` : '')
+    + `<tr><td ${td}>Von Ihren Online-Zahlungen einbehalten (Gebührenkonto)</td><td ${tdr}>${eur(a.einbehalten)}</td></tr>`
     + `<tr style="background:#f5f5f5"><td ${td}><b>Überweisung an Sie über Stripe</b> (Online-Umsatz abzüglich Gebühren)</td><td ${tdr}><b>${eur(a.ueberweisung)}</b></td></tr>`
-    + (a.offen ? `<tr><td ${td}><b>Offener Betrag</b> (wird eingezogen oder ist an FlueVate zu überweisen)</td><td ${tdr}><b>${eur(a.offen)}</b></td></tr>` : '')
+    + (a.offen ? `<tr><td ${td}><b>Offener Betrag laut Gebührenkonto</b> (wird eingezogen)</td><td ${tdr}><b>${eur(a.offen)}</b></td></tr>` : '')
     + `<tr><td ${td}>Bar / EC-Karte in Ihrer Kasse</td><td ${tdr}>${eur(a.umsatzLaden)}</td></tr>`
     + `<tr style="background:#e8f5e9"><td style="padding:10px;font-weight:bold;color:#2e7d32;font-size:15px">Ihnen bleiben nach allen Gebühren</td><td style="padding:10px;text-align:right;font-weight:bold;color:#2e7d32;font-size:15px">${eur(a.bleibt)}</td></tr>`;
 }
 function abrechnungOwnerText(a) {
   const eur = n => n.toFixed(2).replace('.', ',') + ' €';
   const teile = [a.grund && `Grundgebühr ${eur(a.grund)}`, a.domain && `Domain ${eur(a.domain)}`,
-    `Servicegebühr ${eur(a.svc)} (${a.n} Bestellungen)`].filter(Boolean).join(', ');
+    ...a.sonstige.map(f => `${f.text} ${eur(f.betrag)}`), `Servicegebühr ${eur(a.svc)} (${a.n} Bestellungen)`].filter(Boolean).join(', ');
   return `<b>Gebühren FlueVate:</b> ${eur(a.fluevate)} (${teile})`
     + (a.nOnline ? `<br><b>Stripe-Gebühr:</b> ${eur(a.stripeGeb)} (${a.nOnline} Online-Zahlungen)` : '')
+    + `<br><b>Einbehalten (Gebührenkonto):</b> ${eur(a.einbehalten)}`
     + `<br><b>Überweisung an den Laden:</b> ${eur(a.ueberweisung)}`
     + (a.offen ? `<br><b>Offener Betrag (einziehen):</b> ${eur(a.offen)}` : '');
 }
@@ -1788,7 +1854,7 @@ function pdfBarRechnung(doc, barOrders, barStats, zeitraum) {
   if (!barOrders.length) return;
   doc.addPage(); doc.y = PDF_M;
   doc.rect(0, 0, PDF_PW, 50).fill('#1a1a2e');
-  doc.font('Helvetica-Bold').fontSize(16).fillColor('#fff').text('Bar-Zahlungen – Übersicht', PDF_M, 14);
+  doc.font('Helvetica-Bold').fontSize(16).fillColor('#fff').text('Vor Ort bezahlt – Übersicht', PDF_M, 14);
   doc.font('Helvetica').fontSize(9).fillColor('rgba(255,255,255,0.7)').text(`FlueVate Online-Bestellsystem  ·  ${zeitraum}`, PDF_M, 33);
   doc.y = 62;
   const addrY = doc.y;
@@ -1801,7 +1867,7 @@ function pdfBarRechnung(doc, barOrders, barStats, zeitraum) {
   doc.y += 12;
   const hy = doc.y;
   doc.rect(PDF_M, hy, PDF_W, 16).fill('#fef9e7');
-  doc.font('Helvetica').fontSize(7.5).fillColor('#7a5c00').text('Interne Übersicht – keine Rechnung. Nur Barzahlungen; Stripe-Gebühren wurden bereits beim Checkout einbehalten.', PDF_M+6, hy+4, { width:PDF_W-12 });
+  doc.font('Helvetica').fontSize(7.5).fillColor('#7a5c00').text('Interne Übersicht – keine Rechnung. Bar- und EC-Karten-Zahlungen; Stripe-Gebühren wurden bereits beim Checkout einbehalten.', PDF_M+6, hy+4, { width:PDF_W-12 });
   doc.y = hy + 16 + 6;
   doc.moveTo(PDF_M, doc.y).lineTo(PDF_M+PDF_W, doc.y).strokeColor('#333').lineWidth(1).stroke(); doc.y += 4;
   const th = doc.y;
@@ -1812,7 +1878,7 @@ function pdfBarRechnung(doc, barOrders, barStats, zeitraum) {
   doc.y = th + 16;
   barOrders.forEach((o, i) => {
     if (doc.y > PDF_FT - 20) { doc.addPage(); doc.y = PDF_M; }
-    const sf   = o.serviceFee || PDF_SV;
+    const sf   = gebuehren.gebuehrJeBestellung(o) / 100;
     const date = new Date(o.createdAt).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit' }); // liefert schon "13.10."
     const art  = o.mode === 'lieferung' ? 'Lieferung' : 'Abholung';
     const ry = doc.y;
@@ -1836,9 +1902,13 @@ function pdfBarRechnung(doc, barOrders, barStats, zeitraum) {
   doc.y = s1y + 18 + 4;
   const gy = doc.y;
   doc.rect(PDF_M, gy, PDF_W, 30).fill('#1a1a2e');
-  doc.font('Helvetica-Bold').fontSize(11).fillColor('#fff').text('Summe Servicegebühren (Bar)', PDF_M+10, gy+9, { width:PDF_W*0.6 });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#fff').text('Summe Servicegebühren (vor Ort)', PDF_M+10, gy+9, { width:PDF_W*0.6 });
   doc.font('Helvetica-Bold').fontSize(13).fillColor('#ffd700').text(pdfFmt(barStats.barBetrag), PDF_M+2, gy+8, { width:PDF_W-4, align:'right' });
   doc.y = gy + 30 + 8;
+  const uy = doc.y;
+  doc.rect(PDF_M, uy, PDF_W, 14).fill('#fef9e7');
+  doc.font('Helvetica').fontSize(7.5).fillColor('#7a5c00').text('Fließt ins Gebührenkonto (letzte Seite) – dieses Dokument ist keine Rechnung.', PDF_M+6, uy+3, { width:PDF_W-12 });
+  doc.y = uy + 14;
 }
 
 
@@ -1983,18 +2053,18 @@ cron.schedule('0 22 * * *', async () => {
 // Baut das Wochenbericht-PDF. Einzige Quelle fuer das Layout.
 function buildWochenberichtPdf(doc, d) {
   const { kw, jahr, vonBis, orders, brutto, svcFees, auszahlung,
-          barOrders, barSvc, barNetto, barBetrag } = d;
+          barOrders, barSvc, barNetto, barBetrag, konto = null } = d;
 
   pdfColorBox(doc, `Wochenbericht KW ${kw} / ${jahr}`, `Pizzeria Italia  ·  ${vonBis}`, '#ece118');
   pdfKacheln(doc, [
     ['Bestellungen gesamt', `${orders.length}`,                                                   '#1a1a2e'],
-    ['Davon Bar',           `${barOrders.length}`,                                                '#2c5282'],
-    ['Davon Online',        `${orders.filter(o=>['stripe','paypal'].includes(o.payment)).length}`,'#276749'],
+    ['Davon vor Ort',           `${barOrders.length}`,                                                '#2c5282'],
+    ['Davon Online',        `${orders.filter(o=>o.payment==='stripe').length}`,'#276749'],
     ['Brutto-Umsatz',       pdfFmt(brutto),                                                       '#744210'],
   ]);
   doc.moveDown(0.4);
   pdfHr(doc);
-  pdfAbrechnung(doc, berichtAbrechnung(orders, false));
+  pdfAbrechnung(doc, berichtAbrechnung(orders, null, konto));
   doc.y += 6;
   pdfHr(doc, '#bbb');
   doc.font('Helvetica-Bold').fontSize(10).fillColor('#1a1a2e').text('BESTELLLISTE', PDF_M, doc.y);
@@ -2003,6 +2073,7 @@ function buildWochenberichtPdf(doc, d) {
   if (barOrders.length > 0) {
     pdfBarRechnung(doc, barOrders, { barSvc, barNetto, barBetrag }, vonBis);
   }
+  if (konto) gebuehren.pdfSeite(doc, konto, { titel: 'Gebührenkonto', zeitraum: `Stand KW ${kw} / ${jahr}` });
   // y=820 liegt unter dem Textbereich (791,9) - Rand kurz auf 0, sonst haengt pdfkit eine leere Seite an
   const _mb = doc.page.margins.bottom; doc.page.margins.bottom = 0;
   doc.font('Helvetica').fontSize(7).fillColor('#bbb')
@@ -2032,17 +2103,18 @@ async function wochenberichtVersenden(now, { nurOwner = false } = {}) {
   });
 
   const brutto     = orders.reduce((s,o) => s+(o.total||0), 0);
-  const svcFees    = orders.reduce((s,o) => s+(o.serviceFee||PDF_SV), 0);
+  const svcFees    = orders.reduce((s,o) => s+(o.serviceFee??PDF_SV), 0);
   const auszahlung = brutto - svcFees;
-  const barOrders  = orders.filter(o => o.payment === 'bar');
-  const barSvc     = barOrders.reduce((s,o) => s+(o.serviceFee||PDF_SV), 0);
+  const barOrders  = orders.filter(gebuehren.istVorOrt);
+  const barSvc     = barOrders.reduce((s,o) => s+gebuehren.gebuehrJeBestellung(o)/100, 0);
   const barNetto   = barOrders.reduce((s,o) => s+(o.total||0), 0) - barSvc;
   const barBetrag  = barSvc;
-  const a = berichtAbrechnung(orders, false);
+  const konto      = await gebuehren.kontostand();
+  const a = berichtAbrechnung(orders, null, konto);
 
   const berichtPdf = await generatePdf(doc => buildWochenberichtPdf(doc, {
     kw, jahr: now.getFullYear(), vonBis, orders, brutto, svcFees, auszahlung,
-    barOrders, barSvc, barNetto, barBetrag,
+    barOrders, barSvc, barNetto, barBetrag, konto,
   }));
 
   // Wer wirklich eine Mail bekommen hat. Fehlt der Resend-Key oder eine
@@ -2067,7 +2139,7 @@ async function wochenberichtVersenden(now, { nurOwner = false } = {}) {
     <tr style="background:#f5f5f5"><td style="padding:8px">Bestellungen gesamt</td><td style="padding:8px;text-align:right"><b>${orders.length}</b></td></tr>
     ${abrechnungMailZeilen(a)}
   </table>
-  <p style="font-size:11px;color:#aaa;margin-top:8px">Anbei der Wochenbericht mit Bestellliste${barOrders.length > 0 ? ' und Bar-Übersicht' : ''}.</p>
+  <p style="font-size:11px;color:#aaa;margin-top:8px">Anbei der Wochenbericht mit Bestellliste${barOrders.length > 0 ? ', Übersicht vor Ort bezahlt' : ''} und Gebührenkonto.</p>
 </div>
 </div>`,
       attachments: [{ filename: `KW${kw}_${now.getFullYear()}_Italia_Wochenbericht.pdf`, content: berichtPdf.toString('base64') }],
@@ -2115,18 +2187,19 @@ function getWeekNum(d) {
 // Cron und manueller Endpunkt rufen beide hier rein.
 function buildMonatsberichtPdf(doc, d) {
   const { monat, vonBis, orders, brutto, svcFees, auszahlung,
-          barOrdersM, barSvcM, barNettoM, barBetragM, weekRows, stornos = [] } = d;
+          barOrdersM, barSvcM, barNettoM, barBetragM, weekRows, stornos = [],
+          grund = 0, konto = null, ym = null } = d;
 
   pdfColorBox(doc, `Monatsbericht ${monat}`, `Pizzeria Italia  ·  ${vonBis}`, '#ece118');
   pdfKacheln(doc, [
     ['Bestellungen gesamt', `${orders.length}`,                                                   '#1a1a2e'],
-    ['Davon Bar',           `${barOrdersM.length}`,                                               '#2c5282'],
-    ['Davon Online',        `${orders.filter(o=>['stripe','paypal'].includes(o.payment)).length}`,'#276749'],
+    ['Davon vor Ort',           `${barOrdersM.length}`,                                               '#2c5282'],
+    ['Davon Online',        `${orders.filter(o=>o.payment==='stripe').length}`,'#276749'],
     ['Brutto-Umsatz',       pdfFmt(brutto),                                                       '#744210'],
   ]);
   doc.moveDown(0.4);
   pdfHr(doc);
-  pdfAbrechnung(doc, berichtAbrechnung(orders, true));
+  pdfAbrechnung(doc, berichtAbrechnung(orders, ym, konto));
   doc.y += 6;
   if (doc.y > PDF_FT - (weekRows.length * 20 + 40)) { doc.addPage(); doc.y = PDF_M; }
   pdfHr(doc, '#bbb');
@@ -2151,6 +2224,7 @@ function buildMonatsberichtPdf(doc, d) {
   if (barOrdersM.length > 0) {
     pdfBarRechnung(doc, barOrdersM, { barSvc: barSvcM, barNetto: barNettoM, barBetrag: barBetragM }, vonBis);
   }
+  if (konto) gebuehren.pdfSeite(doc, konto, { titel: `Gebührenkonto ${monat}`, zeitraum: vonBis, ym });
   // y=820 liegt unter dem Textbereich (791,9) - Rand kurz auf 0, sonst haengt pdfkit eine leere Seite an
   const _mb = doc.page.margins.bottom; doc.page.margins.bottom = 0;
   doc.font('Helvetica').fontSize(7).fillColor('#bbb')
@@ -2182,13 +2256,16 @@ cron.schedule('0 22 * * *', async () => {
     const stornos = await Order.find({ status: 'cancelled', createdAt: { $gte: mStart, $lte: mEnd } }).sort({ createdAt: 1 });
 
     const brutto     = orders.reduce((s,o) => s+(o.total||0), 0);
-    const svcFees    = orders.reduce((s,o) => s+(o.serviceFee||PDF_SV), 0);
+    const svcFees    = orders.reduce((s,o) => s+(o.serviceFee??PDF_SV), 0);
     const auszahlung = brutto - svcFees;
-    const a = berichtAbrechnung(orders, true);
-    const barOrdersM = orders.filter(o => o.payment === 'bar');
-    const barSvcM    = barOrdersM.reduce((s,o) => s+(o.serviceFee||PDF_SV), 0);
+    const barOrdersM = orders.filter(gebuehren.istVorOrt);
+    const barSvcM    = barOrdersM.reduce((s,o) => s+gebuehren.gebuehrJeBestellung(o)/100, 0);
     const barNettoM  = barOrdersM.reduce((s,o) => s+(o.total||0), 0) - barSvcM;
     const barBetragM = barSvcM;
+    const ym         = gebuehrenAnlegen.rein.berlinMonat(mStart);
+    const grund      = grundgebuehr(ym);
+    const konto      = await gebuehren.kontostand(mEnd);
+    const a = berichtAbrechnung(orders, ym, konto);
 
     // ── Wochenübersicht berechnen ─────────────────────────────────
     const weeksMap = {};
@@ -2203,7 +2280,7 @@ cron.schedule('0 22 * * *', async () => {
     // ── PDF: Monatsbericht (Kennzahlen + Bestellliste + Bar-Übersicht) ─────
     const monatsPdf = await generatePdf(doc => buildMonatsberichtPdf(doc, {
       monat, vonBis, orders, brutto, svcFees, auszahlung,
-      barOrdersM, barSvcM, barNettoM, barBetragM, weekRows, stornos,
+      barOrdersM, barSvcM, barNettoM, barBetragM, weekRows, stornos, grund, konto, ym,
     }));
 
     // ── E-Mail: Restaurant + Inhaber ───────────────────────────────────────────
@@ -2316,20 +2393,23 @@ app.post('/api/admin/send-monthly', auth, async (req, res) => {
     const stornos = await Order.find({ status: 'cancelled', createdAt: { $gte: mStart, $lte: mEnd } }).sort({ createdAt: 1 });
 
     const brutto     = orders.reduce((s,o) => s+(o.total||0), 0);
-    const svcFees    = orders.reduce((s,o) => s+(o.serviceFee||PDF_SV), 0);
+    const svcFees    = orders.reduce((s,o) => s+(o.serviceFee??PDF_SV), 0);
     const auszahlung = brutto - svcFees;
-    const a = berichtAbrechnung(orders, true);
-    const barOrdersM = orders.filter(o => o.payment === 'bar');
-    const barSvcM    = barOrdersM.reduce((s,o) => s+(o.serviceFee||PDF_SV), 0);
+    const barOrdersM = orders.filter(gebuehren.istVorOrt);
+    const barSvcM    = barOrdersM.reduce((s,o) => s+gebuehren.gebuehrJeBestellung(o)/100, 0);
     const barNettoM  = barOrdersM.reduce((s,o) => s+(o.total||0), 0) - barSvcM;
     const barBetragM = barSvcM;
+    const ym         = gebuehrenAnlegen.rein.berlinMonat(mStart);
+    const grund      = grundgebuehr(ym);
+    const konto      = await gebuehren.kontostand(mEnd);
+    const a = berichtAbrechnung(orders, ym, konto);
     const weeksMap = {};
     orders.forEach(o => { const kw2=getWeekNum(new Date(o.createdAt)); if(!weeksMap[kw2])weeksMap[kw2]={n:0,brutto:0}; weeksMap[kw2].n++; weeksMap[kw2].brutto+=o.total||0; });
     const weekRows = Object.entries(weeksMap).sort((a,b)=>+a[0]-+b[0]);
 
     const monatsPdf = await generatePdf(doc => buildMonatsberichtPdf(doc, {
       monat, vonBis, orders, brutto, svcFees, auszahlung,
-      barOrdersM, barSvcM, barNettoM, barBetragM, weekRows, stornos,
+      barOrdersM, barSvcM, barNettoM, barBetragM, weekRows, stornos, grund, konto, ym,
     }));
 
     // ?nur=restaurant|inhaber|owner: Probelauf an nur eine Rolle
@@ -2471,5 +2551,9 @@ app.get('/api/admin/history', auth, async (req, res) => {
   }
 });
 
+
+// Gebuehrenkonto: Admin-Endpunkte, Monatsabschluss, Lastschrift, Abgleich
+gebuehren.routen(app, auth);
+gebuehren.zeitplaene(cron);
 
 app.listen(PORT, () => console.log(`🍕 Pizzeria Italia Backend · Port ${PORT}`));
