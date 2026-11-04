@@ -1,0 +1,48 @@
+---
+description: Neue SEO-optimierte Seite erstellen (mit Anti-Slop-Gate)
+argument-hint: "[thema-oder-keyword]"
+---
+
+Erstelle neue SEO-Content. Lies `docs/seo/CLUSTER-MAP.md` für Content-Lücken und `docs/seo/STRATEGIE.md` für den Redaktionsplan. Lade und befolge den Create-Workflow aus `references/create.md` im `seo`-Skill. Wichtig: Das verpflichtende Anti-Slop-Gate (Substanz-Nachweis, Slop-Checkliste, Human-Review-Freigabe) MUSS vor dem Schreiben durchlaufen werden — kein Auto-Publish. Existiert für das Thema schon eine Seite, stattdessen `/seo:optimize` empfehlen. Thema: $ARGUMENTS **`welle 1` / `welle 2`** = alle Seiten dieser Welle aus `SEITENBAUM.md` in einem Lauf: Zahlen aus `KEYWORDS.md`, alle Gliederungen und **eine** Substanz-Tabelle als Gate, dann alle Entwürfe, Einbau erst auf „Bau sie ein“ — mit Halt an jeder der drei Stellen.
+
+---
+
+⚠ **Artefakt-Abgleich zum Schluss — Pflicht.** Jede Zahl aus deiner Zusammenfassung wird in der
+Datei nachgezählt; die `.md` ist vollständig, nie eine Zusammenfassung mit Verweis auf einen Ordner;
+jedes Artefakt aus dem Output-Abschnitt existiert am genannten Pfad. Danach `python3 .claude/skills/seo/scripts/abgleich.py docs/seo` laufen lassen und die Ausgabe ans Ende der Antwort stellen — **Exit 0 ist die Bedingung, dass die Station als erledigt gilt.** Stimmt etwas nicht, wird
+die **Datei** vervollständigt — nicht die Zahl in der Antwort angepasst.
+
+⚠ **Abfrage-Budget — Budget dieses Befehls: 10 je Lauf SISTRIX-Abfragen.** Es steht in `datenquelle.md` und reicht, um die Station
+**vollständig** zu beenden. Vorher verplanen, nicht unterwegs verbrauchen. **Erst in den Dateien
+unter `docs/seo/` nachsehen**, ob die Zahl schon da ist — dieselbe Zahl zweimal zu holen ist der
+häufigste Verlust. Reicht es nicht für alles: das Wichtigste messen, den Rest als Stufe 3
+`[grob geschätzt]` kennzeichnen — **nie abbrechen**. Am Ende eine Zeile:
+`SISTRIX: <n> von <budget> Abfragen · <m> Werte aus vorhandenen Dateien gelesen`.
+
+⚠ **Zielgröße prüfen, bevor du ausgibst.** Der Workflow nennt unten, wie viel bei sauberer Arbeit
+herauskommt. Liegt dein Ergebnis darunter, schreib das **oben in die Antwort** — mit Grund und
+Vorschlag, wie es behoben wird. Nie stillschweigend zu wenig abliefern. Und: **Sammeln kostet keine
+Abfragen** — Autocomplete, „Ähnliche Fragen", Repo-Scan und SERP-Blick laufen vollständig, auch mit
+angebundenem SISTRIX. Die Kontingent-Regeln begrenzen nur das **Messen**.
+
+⚠ **Ein Aufruf, ein Schritt** (Regel null im `seo`-Skill). Führe **nur** aus, wonach dieser Befehl
+benannt ist, dann beende den Turn. Ruf keinen anderen `/seo:`-Befehl auf und arbeite keine weitere
+Station ab — auch nicht, wenn es naheliegt, schneller ginge oder der Nutzer Rückfragen beantwortet.
+Eine Antwort auf eine Rückfrage ist **keine** Freigabe. Nur wenn er ausdrücklich sagt, dass mehrere
+Schritte am Stück laufen sollen, darfst du weitergehen.
+
+Schließe **jede** Antwort mit dieser Zeile ab, als letzte Zeile:
+
+```
+▸ Weiter mit: /seo:optimize   — Station 8: Canonicals, URLs, interne Links, Sitemap
+```
+
+**Die Kette steht fest und wird nicht abgeleitet:** init → keywords → maps → seitenbaum → local →
+compete → optimize (6) → create (7) → optimize (8) → audit (9 + 12, die Abnahme) → track (10) → offpage (11)
+→ geo (13). **Nie „die Pipeline entscheidet", nie `/seo:pipeline` als Nachfolger.** Ob
+eine Station übersprungen wird, entscheidet der Nutzer, nicht der Befehl — und eine Station, die ohne
+Zugang nur teilweise geht (kein GBP, keine GSC), wird trotzdem aufgerufen: sie liefert die Checkliste
+und die Anforderungen, und der Nutzer trägt „begründet übersprungen" selbst ein.
+
+Ist die Station noch nicht fertig (Rückfrage offen, Gate nicht bestanden), steht in der letzten Zeile,
+worauf gewartet wird und wer am Zug ist — und darüber trotzdem der Befehl, der danach kommt.

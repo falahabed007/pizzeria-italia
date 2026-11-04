@@ -1,0 +1,128 @@
+{
+  "url": "https://pizza-italia-beckum.com",
+  "erzeugt": "2026-11-04T13:22:16.570Z",
+  "pfade": [
+    "/"
+  ],
+  "engines": [
+    "chromium",
+    "webkit",
+    "firefox"
+  ],
+  "laeufe": [
+    {
+      "engine": "chromium",
+      "profil": "handy-390",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "rot",
+      "maengel": [
+        "1 Konsolen-/Seitenfehler"
+      ],
+      "fehler": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "chromium",
+      "profil": "tablet-820",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "rot",
+      "maengel": [
+        "1 Konsolen-/Seitenfehler"
+      ],
+      "fehler": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "chromium",
+      "profil": "desktop-1440",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "rot",
+      "maengel": [
+        "1 Konsolen-/Seitenfehler"
+      ],
+      "fehler": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "webkit",
+      "profil": "handy-390",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "rot",
+      "maengel": [
+        "1 Konsolen-/Seitenfehler"
+      ],
+      "fehler": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "webkit",
+      "profil": "tablet-820",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "rot",
+      "maengel": [
+        "1 Konsolen-/Seitenfehler"
+      ],
+      "fehler": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "webkit",
+      "profil": "desktop-1440",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "rot",
+      "maengel": [
+        "1 Konsolen-/Seitenfehler"
+      ],
+      "fehler": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "firefox",
+      "profil": "handy-390",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "gruen",
+      "maengel": [],
+      "fehler": [],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "firefox",
+      "profil": "tablet-820",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "gruen",
+      "maengel": [],
+      "fehler": [],
+      "bilderKaputt": []
+    },
+    {
+      "engine": "firefox",
+      "profil": "desktop-1440",
+      "pfad": "/",
+      "status": 200,
+      "urteil": "gruen",
+      "maengel": [],
+      "fehler": [],
+      "bilderKaputt": []
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sistrix": {
+      "type": "http",
+      "url": "https://api.sistrix.com/mcp/"
+    }
+  }
+}

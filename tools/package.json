@@ -1,0 +1,15 @@
+{
+  "name": "seo-skills-tools",
+  "private": true,
+  "type": "module",
+  "description": "Prüfwerkzeuge für die SEO-Skills: a11y-Gate (axe + Kontrast), Cross-Engine-Smoke (Chromium/WebKit/Firefox), Lighthouse.",
+  "scripts": {
+    "browsers": "playwright install chromium webkit firefox",
+    "cross": "node cross-engine.mjs",
+    "gate": "node ../.claude/skills/a11y-audit/scripts/a11y-gate.mjs"
+  },
+  "dependencies": {
+    "axe-core": "^4.11.4",
+    "playwright": "^1.62.1"
+  }
+}

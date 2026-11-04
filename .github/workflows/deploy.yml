@@ -27,6 +27,10 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # SEO-Werkzeuge und -Notizen sind intern und gehoeren nicht auf die Website
+      - name: Interne SEO-Dateien ausschliessen
+        run: rm -rf .claude tools docs/seo .mcp.json
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
