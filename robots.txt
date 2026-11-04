@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /server.js
+Disallow: /render.yaml
+Disallow: /package.json
+Disallow: /package-lock.json
+Disallow: /stammdaten.json
+Disallow: /printnode-helper.js
+Disallow: /HERKUNFT.txt
+
+Sitemap: https://pizza-italia-beckum.com/sitemap.xml
